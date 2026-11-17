@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Database - Set</title>
+    <!--#include virtual="/ssi/head.html" -->
+    <meta name="description" content="">
+</head>
+
+<body>
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <div class="container-xl mt-3 mb-5 pb-5">
+        <div class="d-flex justify-content-between mb-3">
+            <span>View <span id="set-name"></span> here:</span>
+            <a href="../set-list/">Back to all sets</a>
+        </div>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Packet Name</th>
+                    <th scope="col"># of Tossups</th>
+                    <th scope="col"># of Bonuses</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider" id="set-metadata-list"></tbody>
+        </table>
+        <div class="d-block mx-auto mt-3 spinner-border" id="spinner" role="status"><span class='d-none'>Loading...</span></div>
+    </div>
+
+    <script type="module" src="./index.js"></script>
+</body>
+
+</html>

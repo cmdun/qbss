@@ -1,0 +1,521 @@
+import ServerPlayer from './ServerPlayer.js';
+import Votekick from './VoteKick.js';
+import { HEADER, ENDC, OKCYAN, OKBLUE } from '../bcolors.js';
+import isAppropriateString from '../moderation/is-appropriate-string.js';
+import { BONUS_PROGRESS_ENUM, MODE_ENUM, QUESTION_TYPE_ENUM, TOSSUP_PROGRESS_ENUM } from '../../shared/constants.js';
+import insertTokensIntoHTML from '../../shared/insert-tokens-into-html.js';
+import RateLimit from '../RateLimit.js';
+import { MULTIPLAYER_CLIENT_MESSAGE_TYPE, MULTIPLAYER_ROOM_MESSAGE_TYPE } from '../../shared/protocol/multiplayer-room.js';
+
+// eslint-disable-next-line no-unused-vars
+import TossupBonusRoom from '../../shared/rooms/TossupBonusRoom.js';
+
+import getRandomTossups from '../../database/qbreader/get-random-tossups.js';
+import getRandomBonuses from '../../database/qbreader/get-random-bonuses.js';
+import getPacket from '../../database/qbreader/get-packet.js';
+import getSetList from '../../database/qbreader/get-set-list.js';
+import getNumPackets from '../../database/qbreader/get-num-packets.js';
+
+import checkAnswer from 'qb-answer-checker';
+import Team from '../../shared/Team.js';
+
+const BAN_DURATION = 1000 * 60 * 30; // 30 minutes
+
+/**
+ * @template {typeof TossupBonusRoom} TBase
+ * @param {TBase} RoomClass
+ */
+const ServerMultiplayerRoomMixin = (RoomClass) => class extends RoomClass {
+  checkAnswer = checkAnswer;
+  getPacket = getPacket;
+  getPacketCount = getNumPackets;
+  getRandomBonuses = getRandomBonuses;
+  getRandomTossups = getRandomTossups;
+
+  constructor (name, ownerId, isPermanent, categoryManager, supportedQuestionTypes, isVerified = false) {
+    super(name, categoryManager, supportedQuestionTypes);
+    this.ownerId = ownerId;
+    this.isPermanent = isPermanent;
+    this.isVerified = isVerified;
+    this.bannedUserList = new Map();
+    this.kickedUserList = new Map();
+    this.votekickList = [];
+    this.lastVotekickTime = {};
+
+    this.rateLimiter = new RateLimit(50, 1000);
+    this.rateLimitExceeded = new Set();
+    this.settings = {
+      ...this.settings,
+      lock: false,
+      loginRequired: isVerified,
+      public: true,
+      controlled: false
+    };
+
+    getSetList().then(setList => { this.packetList = setList; });
+    this.cleanupInterval = setInterval(this.cleanupExpiredBansAndKicks.bind(this), 5 * 60 * 1000); // 5 minutes
+  }
+
+  async message ({ userId, username }, message) {
+    switch (message.type) {
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.BAN: return this.ban({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.CHAT: return this.chat({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.CHAT_LIVE_UPDATE: return this.chatLiveUpdate({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.GIVE_ANSWER_LIVE_UPDATE: return this.giveAnswerLiveUpdate({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_CONTROLLED: return this.toggleControlled({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_LOCK: return this.toggleLock({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_LOGIN_REQUIRED: return this.toggleLoginRequired({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_MUTE: return this.toggleMute({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_PUBLIC: return this.togglePublic({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.VOTEKICK_INIT: return this.votekickInit({ userId, username }, message);
+      case MULTIPLAYER_ROOM_MESSAGE_TYPE.VOTEKICK_VOTE: return this.votekickVote({ userId, username }, message);
+      default: super.message({ userId, username }, message);
+    }
+  }
+
+  allowed (userId) {
+    return (userId === this.ownerId) || this.settings.public || !this.settings.controlled;
+  }
+
+  ban ({ userId }, { targetId, targetUsername }) {
+    console.log('Ban request received. Target ' + targetId);
+    if (this.ownerId !== userId) { return; }
+
+    this.emitMessage({ type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.CONFIRM_BAN, targetId, targetUsername });
+    this.bannedUserList.set(targetId, Date.now());
+
+    setTimeout(() => this.closeConnection({ userId: targetId, username: targetUsername }), 1000);
+  }
+
+  connection (socket, userId, username, ip, userAgent = '') {
+    console.log(
+      `Connection in room ${HEADER}${this.name}${ENDC};`,
+      `ip: ${OKCYAN}${ip}${ENDC};`,
+      userAgent ? `userAgent: ${OKCYAN}${userAgent}${ENDC};` : '',
+      `userId: ${OKBLUE}${userId}${ENDC};`,
+      `username: ${OKBLUE}${username}${ENDC};`
+    );
+    this.cleanupExpiredBansAndKicks();
+
+    if (this.sockets[userId]) {
+      this.sendToSocket(userId, { type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.ERROR, message: 'You joined on another tab' });
+      setTimeout(() => this.closeConnection({ userId, username }), 5000);
+    }
+
+    const isNew = !(userId in this.players);
+    if (isNew) {
+      this.players[userId] = new ServerPlayer(userId);
+      const teamId = userId;
+      this.players[userId].teamId = teamId;
+      this.teams[teamId] = new Team(teamId);
+    }
+    this.players[userId].online = true;
+    this.sockets[userId] = socket;
+    username = this.players[userId].safelySetUsername(username);
+
+    if (this.bannedUserList.has(userId)) {
+      console.log(`Banned user ${userId} (${username}) tried to join a room`);
+      this.sendToSocket(userId, { type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.ENFORCING_REMOVAL, removalType: 'ban' });
+      return;
+    }
+
+    if (this.kickedUserList.has(userId)) {
+      console.log(`Kicked user ${userId} (${username}) tried to join a room`);
+      this.sendToSocket(userId, { type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.ENFORCING_REMOVAL, removalType: 'kick' });
+      return;
+    }
+
+    socket.on('message', message => {
+      if (this.rateLimiter(socket)) {
+        // Still over the limit: always drop the message, but only log once per burst.
+        if (!this.rateLimitExceeded.has(username)) {
+          console.log(`Rate limit exceeded for ${username} in room ${this.name}`);
+          this.rateLimitExceeded.add(username);
+        }
+        return;
+      }
+      // Back under the limit: clear the flag so the user recovers.
+      this.rateLimitExceeded.delete(username);
+
+      try {
+        message = JSON.parse(message);
+      } catch (error) {
+        console.log(`Error parsing message: ${message}`);
+        return;
+      }
+      this.message({ userId, username: this.players[userId]?.username }, message);
+    });
+
+    socket.on('close', this.closeConnection.bind(this, { userId, username }));
+
+    socket.send(JSON.stringify({
+      type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.CONNECTION_ACKNOWLEDGED,
+      teamId: this.players[userId].teamId,
+      userId,
+
+      bonusProgress: this.bonusProgress,
+      bonusEligibleTeamId: this.bonusEligibleTeamId,
+      buzzedIn: this.buzzedIn,
+      canBuzz: this.settings.rebuzz || !this.buzzes.includes(userId),
+      currentQuestionType: this.currentQuestionType,
+      isPermanent: this.isPermanent,
+      isVerified: this.isVerified,
+      mode: this.mode,
+      ownerId: this.ownerId,
+      packetLength: this.packetCount,
+      players: this.players,
+      teams: this.teams,
+      tossupProgress: this.tossupProgress,
+      packetCount: this.packetCount,
+      settings: this.settings
+    }));
+
+    socket.send(JSON.stringify({ type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.CONNECTION_ACKNOWLEDGED_QUERY, ...this.query, ...this.categoryManager.export() }));
+    socket.send(JSON.stringify({
+      type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.CONNECTION_ACKNOWLEDGED_QUESTION,
+      currentQuestionType: this.currentQuestionType,
+      question: this.currentQuestionType === QUESTION_TYPE_ENUM.TOSSUP ? this.tossup : this.bonus
+    }));
+
+    if (this.currentQuestionType === QUESTION_TYPE_ENUM.TOSSUP) {
+      if (this.tossupProgress === TOSSUP_PROGRESS_ENUM.READING) {
+        socket.send(JSON.stringify({
+          type: 'update-question',
+          word: this.questionSplit.slice(0, this.wordIndex).join(' ')
+        }));
+      }
+
+      if (this.tossupProgress === TOSSUP_PROGRESS_ENUM.ANSWER_REVEALED && this.tossup?.answer) {
+        socket.send(JSON.stringify({
+          type: 'reveal-tossup-answer',
+          question: insertTokensIntoHTML(this.tossup.question, this.tossup.question_sanitized, { ' (#) ': this.buzzpointIndices }),
+          answer: this.tossup.answer
+        }));
+      }
+    } else if (this.currentQuestionType === QUESTION_TYPE_ENUM.BONUS) {
+      socket.send(JSON.stringify({ type: 'reveal-leadin', leadin: this.bonus.leadin }));
+      // Reveal each part that has been shown
+      for (let i = 0; i <= this.currentPartNumber && i < this.bonus.parts.length; i++) {
+        socket.send(JSON.stringify({
+          type: 'reveal-next-part',
+          currentPartNumber: i,
+          part: this.bonus.parts[i],
+          value: this.bonus.values?.[i] ?? 10
+        }));
+
+        // If this part has been answered, reveal its answer
+        if (i < this.pointsPerPart.length) {
+          socket.send(JSON.stringify({
+            type: 'reveal-next-answer',
+            answer: this.bonus.answers[i],
+            currentPartNumber: i,
+            lastPartRevealed: i === this.bonus.parts.length - 1
+          }));
+        }
+      }
+    }
+
+    this.emitMessage({ type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.JOIN, isNew, team: this.teams[this.players[userId].teamId], userId, username, user: this.players[userId] });
+  }
+
+  chat ({ userId, username }, { message }) {
+    // prevent chat messages if room is public, since they can still be sent with API
+    if (this.settings.public && !this.settings.loginRequired) { return false; }
+    if (typeof message !== 'string') { return false; }
+    if (!isAppropriateString(message)) { return this.showChatWarning(userId); }
+    this.emitMessage({ type: MULTIPLAYER_ROOM_MESSAGE_TYPE.CHAT, message, username, userId });
+  }
+
+  chatLiveUpdate ({ userId, username }, { message }) {
+    if (this.settings.public && !this.settings.loginRequired) { return false; }
+    if (typeof message !== 'string') { return false; }
+    if (!isAppropriateString(message)) { return false; }
+    this.emitMessage({ type: MULTIPLAYER_ROOM_MESSAGE_TYPE.CHAT_LIVE_UPDATE, message, username, userId });
+  }
+
+  cleanupExpiredBansAndKicks () {
+    const now = Date.now();
+
+    this.bannedUserList.forEach((banTime, userId) => {
+      if (now - banTime > BAN_DURATION) {
+        this.bannedUserList.delete(userId);
+      }
+    });
+
+    this.kickedUserList.forEach((kickTime, userId) => {
+      if (now - kickTime > BAN_DURATION) {
+        this.kickedUserList.delete(userId);
+      }
+    });
+
+    this.votekickList = this.votekickList.filter(votekick => now - votekick.createdAt <= BAN_DURATION);
+  }
+
+  closeConnection ({ userId, username }) {
+    if (!this.players[userId]) { return; }
+
+    if (this.currentQuestionType === QUESTION_TYPE_ENUM.TOSSUP) {
+      if (this.buzzedIn === userId) {
+        this.giveAnswer({ userId, username }, { givenAnswer: this.liveAnswer });
+        this.buzzedIn = null;
+      }
+    } else if (this.currentQuestionType === QUESTION_TYPE_ENUM.BONUS) {
+      const allowed = this.endCurrentBonus({ userId, username });
+      if (allowed) {
+        this.startNextTossup({ userId, username });
+      }
+    }
+
+    this.leave(userId);
+
+    const isEmpty = Object.keys(this.sockets).length === 0;
+    const isIdle = this.tossupProgress !== TOSSUP_PROGRESS_ENUM.READING &&
+      this.bonusProgress !== BONUS_PROGRESS_ENUM.READING;
+    const tuh = Object.values(this.players).reduce((total, player) => total + (player.tuh || 0), 0);
+    if (
+      isEmpty &&
+      isIdle &&
+      !this.isPermanent &&
+      this.settings.public &&
+      tuh <= 2
+    ) {
+      clearInterval(this.cleanupInterval);
+      this.onEmpty?.();
+    }
+  }
+
+  giveAnswerLiveUpdate ({ userId, username }, { givenAnswer }) {
+    if (typeof givenAnswer !== 'string') { return false; }
+    this.liveAnswer = givenAnswer;
+    this.emitMessage({ type: MULTIPLAYER_ROOM_MESSAGE_TYPE.GIVE_ANSWER_LIVE_UPDATE, givenAnswer, username, userId });
+  }
+
+  removeAllPlayers () {
+    for (const userId of Object.keys(this.players)) {
+      this.players[userId].online = false;
+      if (Object.keys(this.sockets).includes(userId)) {
+        this.sendToSocket(userId, { type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.ADMIN_LOCK, message: 'An admin has locked this room.' });
+        delete this.sockets[userId];
+      }
+    }
+  }
+
+  setCategories ({ userId, username }, { categories, subcategories, alternateSubcategories, percentView, categoryPercents }) {
+    if (this.isPermanent || !this.allowed(userId)) { return; }
+    super.setCategories({ userId, username }, { categories, subcategories, alternateSubcategories, percentView, categoryPercents });
+  }
+
+  setDifficulties ({ userId, username }, { difficulties }) {
+    if (this.isPermanent || !this.allowed(userId)) { return; }
+    super.setDifficulties({ userId, username }, { difficulties });
+  }
+
+  setMode ({ userId, username }, { mode }) {
+    if (this.isPermanent || !this.allowed(userId)) { return; }
+    if (this.mode !== MODE_ENUM.SET_NAME && this.mode !== MODE_ENUM.RANDOM) { return; }
+    super.setMode({ userId, username }, { mode });
+    this.adjustQuery(['setName'], [this.query.setName]);
+  }
+
+  setPacketNumbers ({ userId, username }, { packetNumbers }) {
+    if (this.isPermanent || !this.allowed(userId)) { return; }
+    super.setPacketNumbers({ userId, username }, { doNotFetch: false, packetNumbers });
+  }
+
+  setReadingSpeed ({ userId, username }, { readingSpeed }) {
+    if (this.isPermanent || !this.allowed(userId)) { return false; }
+    super.setReadingSpeed({ userId, username }, { readingSpeed });
+  }
+
+  async setSetName ({ userId, username }, { setName }) {
+    if (!this.allowed(userId)) { return; }
+    if (!this.packetList) { return; }
+    if (!this.packetList.includes(setName)) { return; }
+    super.setSetName({ userId, username }, { doNotFetch: false, setName });
+  }
+
+  setStrictness ({ userId, username }, { strictness }) {
+    if (this.isPermanent || !this.allowed(userId)) { return; }
+    super.setStrictness({ userId, username }, { strictness });
+  }
+
+  setMinYear ({ userId, username }, { minYear }) {
+    if (this.isPermanent || !this.allowed(userId)) { return; }
+    super.setMinYear({ userId, username }, { minYear });
+  }
+
+  setMaxYear ({ userId, username }, { maxYear }) {
+    if (this.isPermanent || !this.allowed(userId)) { return; }
+    super.setMaxYear({ userId, username }, { maxYear });
+  }
+
+  setUsername ({ userId }, { username }) {
+    if (typeof username !== 'string') { return false; }
+
+    if (!isAppropriateString(username)) {
+      this.sendToSocket(userId, {
+        type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.FORCE_USERNAME,
+        username: this.players[userId].username,
+        message: 'Your username contains an inappropriate word, so it has been reverted.'
+      });
+      return;
+    }
+
+    super.setUsername({ userId }, { username });
+  }
+
+  showChatWarning (userId) {
+    this.sendToSocket(userId, {
+      type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.CHAT_WARNING,
+      message: 'Your message was not sent because it was flagged as inappropriate.'
+    });
+  }
+
+  toggleControlled ({ userId, username }, { controlled }) {
+    if (this.settings.public) { return; }
+    if (userId !== this.ownerId) { return; }
+    this.settings.controlled = !!controlled;
+    this.emitMessage({ type: MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_CONTROLLED, controlled, username });
+  }
+
+  toggleEnableBonuses ({ userId, username }, { enableBonuses }) {
+    if (this.isPermanent || !this.allowed(userId)) { return; }
+    super.toggleEnableBonuses({ userId, username }, { enableBonuses });
+  }
+
+  toggleLock ({ userId, username }, { lock }) {
+    if (this.settings.public || !this.allowed(userId)) { return; }
+    this.settings.lock = lock;
+    this.emitMessage({ type: MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_LOCK, lock, username });
+  }
+
+  toggleLoginRequired ({ userId, username }, { loginRequired }) {
+    if (this.isVerified || this.settings.public || !this.allowed(userId)) { return; }
+    this.settings.loginRequired = loginRequired;
+    this.emitMessage({ type: MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_LOGIN_REQUIRED, loginRequired, username });
+  }
+
+  toggleMute ({ userId }, { targetId, targetUsername, muteStatus }) {
+    if (userId !== this.ownerId) return;
+    this.sendToSocket(userId, { type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.MUTE_PLAYER, targetId, targetUsername, muteStatus });
+  }
+
+  togglePowermarkOnly ({ userId, username }, { powermarkOnly }) {
+    if (!this.allowed(userId)) { return; }
+    super.togglePowermarkOnly({ userId, username }, { powermarkOnly });
+  }
+
+  toggleSkip ({ userId, username }, { skip }) {
+    if (!this.allowed(userId)) { return; }
+    super.toggleSkip({ userId, username }, { skip });
+  }
+
+  toggleStandardOnly ({ userId, username }, { standardOnly }) {
+    if (!this.allowed(userId)) { return; }
+    super.toggleStandardOnly({ userId, username }, { doNotFetch: false, standardOnly });
+  }
+
+  toggleStopOnPower ({ userId, username }, { stopOnPower }) {
+    if (!this.allowed(userId)) { return; }
+    super.toggleStopOnPower({ userId, username }, { stopOnPower });
+  }
+
+  togglePublic ({ userId, username }, { public: isPublic }) {
+    if (this.isPermanent || this.settings.controlled) { return; }
+    this.settings.public = isPublic;
+    if (isPublic) {
+      this.settings.lock = false;
+      this.settings.loginRequired = false;
+      this.settings.timer = true;
+    }
+    this.emitMessage({ type: MULTIPLAYER_ROOM_MESSAGE_TYPE.TOGGLE_PUBLIC, public: isPublic, username });
+  }
+
+  toggleRebuzz ({ userId, username }, { rebuzz }) {
+    if (!this.allowed(userId)) { return false; }
+    super.toggleRebuzz({ userId, username }, { rebuzz });
+  }
+
+  toggleTimer ({ userId, username }, { timer }) {
+    if (this.settings.public || !this.allowed(userId)) { return; }
+    super.toggleTimer({ userId, username }, { timer });
+  }
+
+  votekickInit ({ userId }, { targetId }) {
+    if (this.players[userId].tens === 0 && this.players[userId].powers === 0) { return; }
+    if (!this.players[targetId]) { return; }
+    const targetUsername = this.players[targetId].username;
+
+    const currentTime = Date.now();
+    if (this.lastVotekickTime[userId] && (currentTime - this.lastVotekickTime[userId] < 90000)) {
+      return;
+    }
+
+    for (const votekick of this.votekickList) {
+      if (votekick.exists(targetId)) { return; }
+    }
+    let activePlayers = 0;
+    Object.keys(this.players).forEach(playerId => {
+      if (this.players[playerId].online) {
+        activePlayers += 1;
+      }
+    });
+
+    const threshold = Math.max(Math.floor(activePlayers * 3 / 4), 2);
+    this.lastVotekickTime[userId] = currentTime;
+    const votekick = new Votekick(targetId, threshold, []);
+    votekick.vote(userId);
+    this.votekickList.push(votekick);
+    if (votekick.check()) {
+      this.emitMessage({ type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.SUCCESSFUL_VK, targetUsername, targetId });
+      this.kickedUserList.set(targetId, Date.now());
+      this.votekickList = this.votekickList.filter(vk => !vk.exists(targetId));
+    } else {
+      this.kickedUserList.set(targetId, Date.now());
+      this.emitMessage({ type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.INITIATED_VK, targetUsername, threshold });
+    }
+  }
+
+  votekickVote ({ userId }, { targetId }) {
+    if (this.players[userId].tens === 0 && this.players[userId].powers === 0) {
+      this.emitMessage({ type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.NO_POINTS_VOTEKICK_ATTEMPT, userId });
+      return;
+    }
+    if (!this.players[targetId]) { return; }
+    const targetUsername = this.players[targetId].username;
+
+    let exists = false;
+    let thisVotekick;
+    for (const votekick of this.votekickList) {
+      if (votekick.exists(targetId)) {
+        thisVotekick = votekick;
+        exists = true;
+      }
+    }
+    if (!exists) { return; }
+
+    thisVotekick.vote(userId);
+    if (thisVotekick.check()) {
+      this.emitMessage({ type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.SUCCESSFUL_VK, targetUsername, targetId });
+      this.kickedUserList.set(targetId, Date.now());
+      this.votekickList = this.votekickList.filter(vk => !vk.exists(targetId));
+
+      setTimeout(() => this.closeConnection({ userId: targetId, username: targetUsername }), 1000);
+
+      if (targetId === this.ownerId) {
+        const onlinePlayers = Object.keys(this.players).filter(playerId => this.players[playerId].online && playerId !== targetId);
+        const newHost = onlinePlayers.reduce(
+          (maxPlayer, playerId) => (this.players[playerId].tuh || 0) > (this.players[maxPlayer].tuh || 0) ? playerId : maxPlayer,
+          onlinePlayers[0]
+        );
+        // ^^ highest tuh player becomes new host
+
+        this.ownerId = newHost;
+
+        this.emitMessage({ type: MULTIPLAYER_CLIENT_MESSAGE_TYPE.OWNER_CHANGE, newOwner: newHost });
+      }
+    }
+  }
+};
+
+export default ServerMultiplayerRoomMixin;

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>QBSS - Database setup</title>
+  <!--#include virtual="/ssi/head.html" -->
+  <meta name="description" content="Get a local question database ready for QBSS.">
+</head>
+<body>
+  <!--#include virtual="/ssi/nav.html" -->
+  <main class="container-xl mt-4 mb-5 pb-5" style="max-width: 900px">
+    <p class="text-uppercase text-muted small fw-semibold mb-1">Getting started</p>
+    <h1 class="mb-3">Set up the question database</h1>
+    <p class="lead">QBSS keeps the question collection on your computer. On first launch, select the extracted backup folder and QBSS will build and connect the local database for you.</p>
+
+    <section class="card mb-3"><div class="card-body">
+      <h2 class="h5">1. Get a QBReader backup</h2>
+      <p>Open the <a href="https://www.qbreader.org/db/backups" target="_blank" rel="noopener">QBReader database backups page</a> and download the most recent complete backup folder. The QBReader page links to its public backup archive. Keep all files together when extracting it.</p>
+      <p class="small text-muted mb-0">QBSS is an independent project. The question collection is separate from the QBReader application source.</p>
+    </div></section>
+
+    <section class="card mb-3"><div class="card-body">
+      <h2 class="h5">2. Import the backup</h2>
+      <p>In the installed desktop app, choose <strong>Choose backup folder</strong> on the first launch prompt, or open <strong>Settings → Question database setup</strong> and choose it there. Select the folder containing <code>prelude.json</code> and the sets, packets, tossups, and bonuses files. QBSS checks the backup and builds the SQLite search index locally.</p>
+      <p class="small text-muted mb-0">Keep all extracted files together. Importing can take a few minutes and temporarily needs room for both the old and new database. No Python installation is needed in the desktop app.</p>
+    </div></section>
+
+    <section class="card mb-3"><div class="card-body">
+      <h2 class="h5">3. Restart and study</h2>
+      <p>When the import finishes, restart QBSS to use the new database. Your stars, saved packets, and practice history stay in the separate <code>personal.sqlite</code> file.</p>
+      <p class="mb-0">The included command-line importer is also available for advanced setups and requires Python 3.</p>
+    </div></section>
+
+    <section class="alert alert-info mb-4"><h2 class="h6">Keep your personal data private</h2><p class="mb-0"><code>personal.sqlite</code> contains your stars, saved packets, and local study history. Don’t send it when sharing the public question database. Keep a backup of it if you want to preserve that information.</p></section>
+    <a class="btn btn-primary" href="/settings/">Back to Settings</a>
+  </main>
+</body>
+</html>

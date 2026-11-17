@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Play - Geoword - Results - Packet</title>
+    <!--#include virtual="/ssi/head.html" -->
+    <meta name="description" content="View the geoword packet.">
+</head>
+
+<body>
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <div class="container-xl mt-3 mb-5 pb-5">
+        <div class="row align-items-baseline text-center mb-3">
+            <h1 class="col-md-4 offset-md-4 lead mb-0"><span id="packet-name"></span> Tossups</h1>
+            <a id="back-link" class="col-md-4 text-md-end">Back to stats page</a>
+        </div>
+        <p class="text-center text-muted">
+            Press play to hear a tossup again.<span class="d-none" id="clue-hint"> Choose a clue to jump straight to it, or a buzz to hear where it came.</span>
+        </p>
+        <nav aria-label="Divisions">
+            <div class="nav nav-tabs" id="tabs" role="tablist"></div>
+        </nav>
+        <div class="tab-content" id="tab-content"></div>
+    </div>
+
+    <script type="module" src="./index.js"></script>
+</body>
+
+</html>

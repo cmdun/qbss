@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Home</title>
+    <!--#include virtual="/ssi/head.html" -->
+    <meta name="description" content="A local quizbowl reader and question database.">
+</head>
+
+<body>
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <main class="container-xl mt-3 mb-5 pb-5">
+        <p class="lead" id="home-greeting">Welcome to QBSS</p>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+            <section class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5">Study</h2>
+                        <p>Practice from the local question database, selected sets, starred questions, search results, or your packet library.</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <a class="btn btn-primary" href="/play/combined/">Open reader</a>
+                        </div>
+                        <p class="text-muted mt-3 mb-0">Practice, research, and create study cards in one workspace.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5">Question Database</h2>
+                        <p>Search the local question collection, browse sets, and review answer frequencies.</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <a class="btn btn-primary" href="/db/">Search</a>
+                            <a class="btn btn-primary" href="/db/set-list/">Set List</a>
+                            <a class="btn btn-primary" href="/db/frequency-list/">Frequency List</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5">Packets and Stats</h2>
+                        <p>Parse Word packets, save QBReader JSON packets, and review your local practice performance.</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <a class="btn btn-primary" href="/tools/packet-parser/">Parse a packet</a>
+                            <a class="btn btn-primary" href="/local/library/">Saved Packets</a>
+                            <a class="btn btn-primary" href="/local/stars/">Starred Questions</a>
+                            <a class="btn btn-primary" href="/local/stats/">Stats</a>
+                        </div>
+                        <p class="text-muted mt-3 mb-0">Questions and personal practice data stay in files on this Mac.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <p class="small text-muted mt-3">New here? <a href="/help/database/">Set up the question database</a> before your first study session.</p>
+        <p class="text-muted mt-4 mb-0">QBSS (Quiz Bowl Study Suite) is an independent project built using <a href="https://github.com/qbreader/website" target="_blank" rel="noopener">QBReader</a> source code. QBReader’s MIT license is included with the app.</p>
+    </main>
+
+    <script src="/username-greeting.js"></script>
+</body>
+</html>

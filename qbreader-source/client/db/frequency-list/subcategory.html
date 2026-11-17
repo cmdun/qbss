@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Database - Frequency List - Subcategory</title>
+    <!--#include virtual="/ssi/head.html" -->
+    <meta name="description" content="Frequency lists generated on qbreader.">
+</head>
+
+<body>
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <div class="container-xl mt-3 mb-5 pb-5">
+        <div class="d-flex justify-content-between mb-3">
+            <div class="lead">
+                The <span id="limit">50</span> most frequent answers in <span id="subcategory-name"></span> <span
+                    id="question-type">questions</span>:
+            </div>
+            <div><a href="./">Back to all frequency lists</a></div>
+        </div>
+        <p>
+            <b>Download this page:</b><a class="ms-2 clickable" id="download-frequency-list-txt" role="button" tabindex="0"
+                aria-label="Download frequency list as TXT">TXT</a><a class="ms-2 clickable" id="download-frequency-list-csv"
+                role="button" tabindex="0" aria-label="Download frequency list as CSV">CSV</a>
+        </p>
+        <form class="row" id="form">
+            <div class="col-6 col-md-4 mb-3">
+                <label class="form-label" for="difficulty-dropdown-root">Choose a difficulty level:</label>
+                <div id="difficulty-dropdown-root"></div>
+            </div>
+            <div class="col-6 col-md-4 mb-3">
+                <label class="form-label" for="limit-select">Choose a limit:</label>
+                <select class="form-control" id="limit-select">
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4 mb-3">
+                <label class="form-label" for="question-type-select">Choose a question type:</label>
+                <select class="form-control" id="question-type-select">
+                    <option value="tossup">Tossups only</option>
+                    <option value="bonus">Bonuses only</option>
+                    <option value="all" selected>All questions</option>
+                </select>
+            </div>
+            <div class="col-12 mb-3">
+                Year range: <span id="min-year-label"></span> - <span id="max-year-label"></span>
+                <div class="ui-slider d-flex align-items-center" id="year-slider">
+                    <span class="ui-slider-handle" id="min-year-handle"></span>
+                    <span class="ui-slider-handle" id="max-year-handle"></span>
+                </div>
+            </div>
+        </form>
+        <p>Click on an answer to search for it in the database:</p>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Answer</th>
+                    <th scope="col">Frequency</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider" id="frequency-list"></tbody>
+        </table>
+        <div class="d-block mx-auto mt-3 spinner-border" role="status"><span class="d-none">Loading...</span></div>
+    </div>
+
+    <script src="/node_modules/react/umd/react.production.min.js"></script>
+    <script src="/node_modules/react-dom/umd/react-dom.production.min.js"></script>
+    <script type="module" src="./subcategory.min.js"></script>
+</body>
+
+</html>

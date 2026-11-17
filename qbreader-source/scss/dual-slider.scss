@@ -1,0 +1,30 @@
+// primarily based on jquery
+
+.ui-slider {
+    position: relative;
+    text-align: left;
+    background-color: $form-range-track-bg;
+    height: 8px;
+    border-radius: 8px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.ui-slider-handle {
+    border-radius: 100%;
+    font-size: 13px;
+    border-color: $primary;
+    outline-color: $primary;
+    @include gradient-bg(var(--form-range-thumb-bg));
+}
+
+.ui-slider .ui-slider-handle {
+    position: absolute;
+    z-index: 2;
+    width: 1.2em;
+    height: 1.2em;
+    cursor: pointer;
+    -ms-touch-action: none;
+    touch-action: none;
+}

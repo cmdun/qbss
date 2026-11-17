@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Database - Packet</title>
+    <!--#include virtual="/ssi/head.html" -->
+    <meta name="description" content="">
+</head>
+
+<body>
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <div class="container-xl mt-3 mb-5 pb-5">
+        <div class="d-flex justify-content-between mb-3">
+            <div>
+                Packet <span id="packet-number"></span> (<span id="packet-name"></span>) of <a id="set-name"></a>:
+            </div>
+            <a href="../set-list/">Back to all sets</a>
+        </div>
+        <div class="mb-3">
+            <b>Download packet:</b><a class="ms-2 clickable" id="download-txt">TXT</a><a class="ms-2 clickable"
+                id="download-json">JSON</a>
+        </div>
+        <div id="questions"></div>
+        <div class="d-block mx-auto mt-3 spinner-border" id="spinner" role="status"><span class='d-none'>Loading...</span></div>
+    </div>
+
+    <script type="module" src="./index.js"></script>
+</body>
+
+</html>

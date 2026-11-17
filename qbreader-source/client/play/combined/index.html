@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Study</title>
+    <!--#include virtual="/ssi/head.html" -->
+</head>
+
+<body class="reader-immersive">
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <div class="container-fluid reader-page-shell px-xxl-5">
+        <!--#include virtual="/ssi/star-toast.html" -->
+        <!--#include virtual="/ssi/funny-toast.html" -->
+        <div class="row reader-layout-row">
+            <div class="col-12 col-lg-3 order-lg-1 reader-settings-drawer" id="settings" aria-label="Reader settings" aria-hidden="true" inert>
+                <hr>
+                <label class="form-check-label mb-1" for="set-mode">Choose a mode:</label>
+                <select class="form-select mb-2" id="practice-type" aria-label="Question type">
+                    <option value="tossups">Tossups</option>
+                    <option value="bonuses">Bonuses</option>
+                    <option value="combined">Tossups + Bonuses</option>
+                </select>
+                <select class="form-select mb-2" id="set-mode">
+                    <option value="select by set name">Select by Set Name</option>
+                    <option value="random questions" selected>Random Questions</option>
+                    <option value="starred questions">Starred Questions</option>
+                    <option value="local packet">Local Packet</option>
+                </select>
+                <div class="d-none" id="local-packet-settings">
+                    <p>Load a saved packet from the <a href="/local/library/">local packet library</a>, or import JSON here.</p>
+                    <input class="form-control my-1" type="file" id="local-packet-input" accept=".json,application/json">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-randomize-order" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-randomize-order">Randomize order</label>
+                    </div>
+                </div>
+                <div class="d-none" id="set-settings">
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">Set Name</span>
+                        <input class="form-control" id="set-name" type="text" list="set-list">
+                        <datalist id="set-list"></datalist>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Packet #</span>
+                        <input class="form-control" id="packet-number" type="text" placeholder="Packet Numbers">
+                    </div>
+                    <div class="form-floating">
+                    </div>
+                </div>
+                <div id="difficulty-settings">
+                    <div class="mb-2" id="difficulty-dropdown-root"></div>
+                    Year range: <span id="min-year-label"></span> - <span id="max-year-label"></span>
+                    <div class="ui-slider d-flex align-items-center" id="year-slider">
+                        <span class="ui-slider-handle" id="min-year-handle"></span>
+                        <span class="ui-slider-handle" id="max-year-handle"></span>
+                    </div>
+                </div>
+                <div class="mt-2" id="general-settings">
+                    <div class="text-center mb-2">
+                        <button class="btn btn-danger" id="category-select-button" data-bs-target="#category-modal"
+                            data-bs-toggle="modal" type="button">Categories</button>
+                        <button class="btn btn-warning" id="clear-stats" type="button">Clear Stats</button>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-enable-bonuses" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-enable-bonuses">Earn bonuses</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-powermark-only" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-powermark-only">Powermarked tossups only</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-standard-only" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-standard-only">Standard format only</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-three-part-bonuses" type="checkbox" role="switch" checked>
+                        <label class="form-check-label" for="toggle-three-part-bonuses">3-part bonuses only</label>
+                    </div>
+                    <hr>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-public" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-public">Public room</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-controlled" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-controlled">Controlled room</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="type-to-answer" type="checkbox" role="switch" checked>
+                        <label class="form-check-label" for="type-to-answer">Type to answer</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-read-bonuses-like-tossups" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-read-bonuses-like-tossups">Read bonuses like tossups</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-rebuzz" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-rebuzz">Allow rebuzzes</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-stop-on-power" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-stop-on-power">Stop on power</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-skip" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-skip">Allow skips</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-show-history" type="checkbox" role="switch" checked>
+                        <label class="form-check-label" for="toggle-show-history">Show question history</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-show-set-name" type="checkbox" role="switch" checked>
+                        <label class="form-check-label" for="toggle-show-set-name">Show set name</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-timer" type="checkbox" role="switch" checked>
+                        <label class="form-check-label" for="toggle-timer">Enable timer</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-distraction-free-mode" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-distraction-free-mode">
+                            Enable distraction-free mode
+                            <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Hides all chat messages and shows all usernames as 'Player'. This change only affects you."
+                                style="font-size: 0.85em; cursor: help;"></i>
+                        </label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-lock" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-lock">Lock room from new players</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="toggle-login-required" type="checkbox" role="switch">
+                        <label class="form-check-label" for="toggle-login-required">Require new players to be logged in</label>
+                    </div>
+                    <div class="mb-2"></div>
+                    <label for="reading-speed">Reading speed: <span id="reading-speed-display">50</span><br></label>
+                    <input class="form-range" id="reading-speed" type="range" min="0" max="100" step="5">
+                    <div>
+                        View more settings <a href="/settings/">here</a>.
+                    </div>
+                    <p class="mb-1 text-muted">
+                        <i id="private-chat-warning">Chat is disabled in public rooms.</i>
+                        <i class="d-none" id="permanent-room-warning">This is a permanent room. Some settings have been restricted.</i>
+                        <i class="d-none" id="controlled-room-warning">
+                            This is a controlled room. Some settings can only be edited by the creator.
+                        </i>
+                    </p>
+                </div>
+            </div>
+            <aside class="wikipedia-drawer" id="wikipedia-drawer" aria-label="Wikipedia study reader" aria-hidden="true" inert>
+                <div class="wikipedia-workspace">
+                    <form class="wikipedia-search input-group" id="wikipedia-search-form" role="search">
+                        <button class="btn btn-outline-secondary" id="wikipedia-back" type="button" aria-label="Back" title="Back" disabled><i class="bi bi-arrow-left"></i></button>
+                        <button class="btn btn-outline-secondary" id="wikipedia-forward" type="button" aria-label="Forward" title="Forward" disabled><i class="bi bi-arrow-right"></i></button>
+                        <input class="form-control" id="wikipedia-search-input" type="search" placeholder="Search English Wikipedia" autocomplete="off" maxlength="200" aria-label="Search English Wikipedia">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </form>
+                    <div id="wikipedia-status" class="small text-muted" role="status" aria-live="polite"></div>
+                    <div id="wikipedia-results" class="wikipedia-results" aria-label="Search results"></div>
+                    <article class="wikipedia-article d-none" id="wikipedia-article" aria-label="Wikipedia article">
+                        <div class="wikipedia-article-toolbar">
+                            <h1 class="wikipedia-header-title" id="wikipedia-header-title"></h1>
+                        </div>
+                        <div class="wikipedia-article-scroll" id="wikipedia-article-scroll">
+                            <div class="wikipedia-article-body" id="wikipedia-article-body"></div>
+                            <p class="wikipedia-attribution small text-muted">Article text from <a id="wikipedia-source-link" href="https://en.wikipedia.org/" target="_blank" rel="noopener">English Wikipedia</a> (reformatted for QBSS; article text is provided under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>). <a id="wikipedia-history-link" href="https://en.wikipedia.org/" target="_blank" rel="noopener">Contributors and revision history</a>. Images and other media may have separate licenses. QBSS is independent and not endorsed by the Wikimedia Foundation.</p>
+                        </div>
+                    </article>
+                </div>
+            </aside>
+            <div class="col-12 col-lg-9" id="content">
+                <div id="reader-stage">
+                    <div class="reader-fixed-header">
+                        <div class="float-row reader-status">
+                            <span id="local-scoreline">Tossups: 0 pts · Bonuses: 0 pts · Total: 0 pts</span>
+                            <div class="timer text-center" id="timer" aria-label="Timer">
+                                <span class="reader-timer-label">Timer</span> <span class="face">10</span><span class="fraction">.0</span>
+                            </div>
+                            <span class="float-end ps-5 me-lg-2" id="question-metadata">
+                                <b id="question-info">
+                                    <span id="set-name-info"></span>
+                                    <span id="packet-details-info" class="d-none">
+                                        · Packet <span id="packet-number-info">-</span>
+                                        · Question <span id="question-number-info">-</span>
+                                    </span>
+                                </b>
+                            </span>
+                        </div>
+                        <div class="small text-muted" id="local-session-detail"></div>
+                    </div>
+                    <div class="reader-question-area">
+                        <p class="reader-idle text-muted" id="reader-idle">Select <b>Next</b> to begin.</p>
+                        <div class="reader-tile d-none" id="reader-tile">
+                            <form id="answer-form">
+                                <!-- User enters answer here -->
+                                <div class="input-group d-none my-2" id="answer-input-group">
+                                    <input class="form-control" id="answer-input" type="text" placeholder="Enter answer" autocomplete="off"
+                                        maxlength="256">
+                                    <button class="btn btn-success" id="answer-submit" type="submit">Submit</button>
+                                </div>
+                            </form>
+                            <form id="chat-form">
+                                <div class="input-group d-none my-2" id="chat-input-group">
+                                    <input class="form-control" id="chat-input" type="text" placeholder="Chat" maxlength="256">
+                                    <button class="btn btn-success" id="chat-submit" type="submit">Submit</button>
+                                </div>
+                            </form>
+                            <div class="mt-2" id="question"></div>
+                            <p class="my-1 my-lg-3" id="answer"></p>
+                            <button class="btn btn-link p-0 d-none" id="toggle-correct" type="button">I was wrong</button>
+                        </div>
+                    </div>
+                </div>
+                <ul class="room-history list-unstyled" id="room-history"></ul>
+            </div>
+            <aside class="database-drawer col-12 col-lg-4" id="database-drawer" aria-label="Database search" aria-hidden="true" inert>
+                <div class="database-drawer-frame-wrap">
+                    <iframe class="database-drawer-frame" src="/db/?embedded=1" title="QBSS database search"></iframe>
+                </div>
+            </aside>
+            <aside class="anki-drawer" id="anki-drawer" aria-label="Add Anki card" aria-hidden="true" inert>
+                <div class="anki-workspace">
+                    <div class="d-none" id="anki-connection-controls"><button class="btn btn-sm btn-outline-secondary" id="anki-refresh" type="button">Reconnect</button></div>
+                    <p class="small text-muted mb-0" id="anki-status" role="status" aria-live="polite"></p>
+                    <div class="alert alert-secondary small d-none mb-0" id="anki-setup">
+                        <strong>Connect Anki</strong>
+                        <ol class="mb-1 ps-3"><li>Install and open Anki on this Mac.</li><li>In Anki, choose Tools → Add-ons → Get Add-ons, enter <strong>2055492159</strong>, and restart Anki.</li><li>Open your Anki profile, then select Reconnect above.</li></ol>
+                        <a href="https://ankiweb.net/shared/info/2055492159" target="_blank" rel="noopener">AnkiConnect setup</a>
+                    </div>
+                    <form id="anki-form" class="anki-form">
+                        <label for="anki-deck" class="form-label mb-1">Deck</label><select class="form-select mb-2" id="anki-deck" required></select>
+                        <label for="anki-model" class="form-label mb-1">Note type (card template)</label><select class="form-select mb-2" id="anki-model" required></select>
+                        <div class="d-flex flex-wrap gap-1 mb-2" role="group" aria-label="Field formatting">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-anki-format="b" title="Bold"><b>B</b></button>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-anki-format="i" title="Italic"><i>I</i></button>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-anki-format="u" title="Underline"><u>U</u></button>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-anki-format="cloze">Cloze</button>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="anki-insert-selection">Use selected text</button>
+                        </div>
+                        <div id="anki-fields"></div>
+                        <label for="anki-tags" class="form-label mb-1">Tags</label><input class="form-control mb-3" id="anki-tags" placeholder="Separate tags with spaces">
+                        <div class="d-flex flex-wrap gap-2"><button class="btn btn-primary" id="anki-add" type="submit" title="Shortcut: Command-Enter">Add to Anki</button><button class="btn btn-outline-secondary" id="anki-open" type="button">Open in Anki</button></div>
+                    </form>
+                </div>
+            </aside>
+        </div>
+    </div>
+    <div class="container-fluid px-xxl-5 position-fixed bottom-0">
+        <div class="row">
+            <div class="col-12 col-lg-9 py-3 bg-body" id="buttons">
+                <button class="btn btn-primary" id="next" data-bs-placement="top" data-bs-toggle="tooltip" type="button"
+                    title="Shortcut: n or s key">Next</button>
+                <button class="btn btn-primary" id="pause" data-bs-placement="top" data-bs-toggle="tooltip" type="button"
+                    title="Shortcut: p key" disabled><i class="bi bi-pause-fill"></i></button>
+                <button class="btn btn-info" id="chat" data-bs-placement="top" data-bs-toggle="tooltip" type="button"
+                    title="Shortcut: enter key">Chat</button>
+                <button class="btn btn-danger" id="toggle-settings" data-bs-placement="top" data-bs-toggle="tooltip" type="button"
+                    aria-controls="settings" aria-expanded="false" title="Shortcut: e key">
+                    <div class="d-flex align-items-center"><i class="bi bi-gear"></i></div>
+                </button>
+                <button class="btn btn-primary reader-database-toggle" id="toggle-wikipedia" data-bs-placement="top"
+                    data-bs-toggle="tooltip" type="button" aria-label="Open Wikipedia study reader" aria-controls="wikipedia-drawer"
+                    aria-expanded="false" title="Wikipedia study reader · Shortcut: w">
+                    <i class="bi bi-book-half" aria-hidden="true"></i>
+                </button>
+                <button class="btn btn-primary reader-database-toggle" id="toggle-database" data-bs-placement="top"
+                    data-bs-toggle="tooltip" type="button" aria-label="Open database search" aria-controls="database-drawer"
+                    aria-expanded="false" title="Database search · Shortcut: d">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                </button>
+                <button class="btn btn-primary reader-database-toggle" id="toggle-anki" data-bs-placement="top" data-bs-toggle="tooltip" type="button" aria-label="Add an Anki card" aria-controls="anki-drawer" aria-expanded="false" title="Add Anki card · Shortcut: a">
+                    <i class="bi bi-card-text" aria-hidden="true"></i>
+                </button>
+                <button class="btn btn-primary float-end" id="reveal" data-bs-placement="top" data-bs-toggle="tooltip" type="button"
+                    title="Shortcut: spacebar" disabled>Reveal</button>
+                <button class="btn btn-primary float-end me-1" id="buzz" data-bs-placement="top" data-bs-toggle="tooltip" type="button"
+                    title="Shortcut: spacebar" disabled>Buzz</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="category-modal-root"></div>
+
+    <!--#include virtual="/ssi/report-question-modal.html" -->
+
+    <div class="modal fade" id="alert-modal" tabindex="-1" aria-labelledby="alert-modal-text" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p id="alert-modal-text" class="mb-0"></p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="alert-modal-close" data-bs-dismiss="modal" type="button">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/node_modules/react/umd/react.production.min.js"></script>
+    <script src="/node_modules/react-dom/umd/react-dom.production.min.js"></script>
+    <script src="/node_modules/dompurify/dist/purify.min.js"></script>
+    <style>
+        #chat, #chat-form, #chat-input-group, #offline-players-option, #player-list-group, #toggle-public,
+        #toggle-controlled, #toggle-lock, #toggle-login-required, #toggle-distraction-free-mode,
+        #private-chat-warning, #username { display: none !important; }
+    </style>
+    <script type="module" src="./index.min.js"></script>
+</body>
+
+</html>

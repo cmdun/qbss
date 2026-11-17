@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Admin - Geoword</title>
+    <!--#include virtual="/ssi/head.html" -->
+</head>
+
+<body>
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <div class="container-xl mt-3 mb-5 pb-5">
+        <div class="d-flex justify-content-between">
+            <p>
+                Welcome to the admin view of geoword.
+                Choose a game below:
+            </p>
+            <p><a href="/play/geoword/">Back to geoword</a></p>
+        </div>
+        <p><b>Compare two players:</b> <a href="./compare">Compare</a></p>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xxl-4 g-3" id="packet-list"></div>
+    </div>
+
+    <script type="module" src="/play/geoword/admin/index.js"></script>
+</body>
+
+</html>

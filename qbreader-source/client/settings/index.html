@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Settings</title>
+    <!--#include virtual="/ssi/head.html" -->
+    <meta name="description" content="Adjust QBSS settings.">
+</head>
+
+<body>
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <div class="container-xl mt-3 mb-5 pb-5">
+        <p class="lead">Adjust site-wide settings here.</p>
+        <section id="appearance" class="card card-body mb-4">
+            <h1 class="h4">Appearance</h1>
+            <p class="text-muted">Choose a theme or import a Base16 palette. Preview and adjust its colors before applying it throughout QBSS.</p>
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-md-5"><label for="theme-choice" class="form-label">Theme</label>
+                    <select id="theme-choice" class="form-select">
+                        <option value="auto">Automatic (system)</option><option value="light">Light</option><option value="night">Night</option>
+                        <option value="nord">Nord</option><option value="solarized">Solarized Light</option><option value="custom">Saved custom theme</option>
+                    </select>
+                </div>
+                <div class="col-md-7"><label for="theme-import" class="form-label">Import Base16 or QBSS theme</label><input id="theme-import" type="file" class="form-control" accept=".yaml,.yml,.json,application/json,text/yaml"></div>
+            </div>
+            <div id="theme-editor" class="d-none">
+                <div class="mb-3"><label for="theme-name" class="form-label">Theme name</label><input id="theme-name" class="form-control" maxlength="100"></div>
+                <p class="small text-muted">Colors below control interface roles. Changes are previewed until you apply them.</p>
+                <div id="theme-role-fields" class="row g-2 mb-3"></div>
+            </div>
+            <div id="theme-message" class="small mb-2" role="status" aria-live="polite"></div>
+            <div class="d-flex flex-wrap gap-2"><button type="button" class="btn btn-primary" id="theme-apply">Apply theme</button><button type="button" class="btn btn-outline-secondary" id="theme-revert">Revert preview</button><button type="button" class="btn btn-outline-secondary" id="theme-export">Export theme</button></div>
+        </section>
+        <section class="card card-body mb-4" aria-labelledby="qbreader-stats-heading">
+            <h2 class="h4" id="qbreader-stats-heading">Import QBReader stats</h2>
+            <p class="text-muted">Bring your personal reading history into QBSS. Select the tossup and bonus CSV exports from your QBReader account; you can import either one or both. Reimporting the same file will not duplicate its records.</p>
+            <div class="row g-3">
+                <div class="col-md-6"><label for="import-tossup-stats" class="form-label">Tossup stats CSV</label><input id="import-tossup-stats" class="form-control" type="file" accept=".csv,text/csv"></div>
+                <div class="col-md-6"><label for="import-bonus-stats" class="form-label">Bonus stats CSV</label><input id="import-bonus-stats" class="form-control" type="file" accept=".csv,text/csv"></div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+                <button type="button" class="btn btn-primary" id="import-qbreader-stats">Import selected files</button>
+                <a class="btn btn-outline-secondary" href="/local/stats/">View Stats</a>
+                <span id="stats-import-status" class="small" role="status" aria-live="polite"></span>
+            </div>
+            <p class="small text-muted mt-3 mb-0">Importing adds to your existing QBSS history. To move to a clean profile, keep both original CSVs and import them after setup.</p>
+        </section>
+        <section class="card card-body mb-4" aria-labelledby="database-setup-heading">
+            <h2 class="h4" id="database-setup-heading">Question database setup</h2>
+            <p class="text-muted">Choose an extracted QBReader backup folder and QBSS will check its files, build the searchable database, and restart with it. Your stars and practice history stay separate.</p>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <button class="btn btn-primary" type="button" id="import-question-backup">Choose backup folder</button>
+                <span id="question-backup-status" class="small text-muted" role="status" aria-live="polite"></span>
+                <button class="btn btn-outline-primary d-none" type="button" id="restart-after-question-import">Restart QBSS</button>
+            </div>
+            <p class="small text-muted mt-2 mb-0">Get a complete backup from <a href="https://www.qbreader.org/db/backups" target="_blank" rel="noopener">QBReader’s public backups page</a>. Keep all extracted files together. The database is processed locally and is not sent to QBSS or shared.</p>
+            <a class="btn btn-outline-primary align-self-start" href="/help/database/">How to get and connect the database</a>
+        </section>
+        <div>
+            <label for="font-size">Font size: <span id="font-size-display">16</span>px</label>
+            <input class="form-range" id="font-size" type="range" value="16" min="10" max="30" step="1">
+            <p class="text-muted">This is the font size used to display the questions on the singleplayer and multiplayer pages.</p>
+        </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" id="toggle-database-font-size" type="checkbox" role="switch">
+            <label class="form-check-label" for="toggle-database-font-size">Also apply font setting to database page</label>
+        </div>
+        <p class="text-muted"></p>
+        <div class="form-check form-switch">
+            <input class="form-check-input" id="toggle-high-contrast-question-text" type="checkbox" role="switch">
+            <label class="form-check-label" for="toggle-high-contrast-question-text">High contrast text</label>
+        </div>
+        <p class="text-muted">
+            When enabled, increases the contrast of the question text and the background by setting it in Times New
+            Roman font and drawing a box around the questions.
+        </p>
+        <div class="form-check form-switch">
+            <input class="form-check-input" id="toggle-sound-effects" type="checkbox" role="switch">
+            <label class="form-check-label" for="toggle-sound-effects">Play sound effects</label>
+        </div>
+        <p class="text-muted">
+            When enabled, plays sound effects when you buzz in, get a question right, or get a question wrong.
+        </p>
+        <div>
+            <label for="multiplayer-name">Username:</label>
+            <input class="form-control" id="multiplayer-name" type="text" name="username">
+        </div>
+    </div>
+
+
+    <script src="/node_modules/js-yaml/dist/js-yaml.min.js"></script>
+    <script type="module" src="/settings/theme-settings.js"></script>
+    <script type="module" src="/settings/stats-import.js"></script>
+    <script type="module" src="/settings/database-setup.js"></script>
+    <script type="module" src="/settings/index.js"></script>
+</body>
+
+</html>

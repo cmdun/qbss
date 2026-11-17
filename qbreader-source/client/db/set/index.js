@@ -1,0 +1,18 @@
+const setId = new URLSearchParams(window.location.search).get('_id');
+fetch('/api/packet-list?' + new URLSearchParams({ set_id: setId, expand: true }))
+  .then(res => res.json())
+  .then(({ packetList, setName }) => {
+    document.getElementById('set-name').textContent = setName;
+    document.getElementById('spinner').classList.add('d-none');
+    const table = document.getElementById('set-metadata-list');
+    packetList.forEach(({ _id, packetName, packetNumber, tossupCount, bonusCount }) => {
+      const row = table.insertRow(-1);
+      row.insertCell(-1).textContent = packetNumber;
+      const a = document.createElement('a');
+      a.href = `../packet/?_id=${_id}`;
+      a.textContent = packetName;
+      row.insertCell(-1).appendChild(a);
+      row.insertCell(-1).textContent = tossupCount;
+      row.insertCell(-1).textContent = bonusCount;
+    });
+  });

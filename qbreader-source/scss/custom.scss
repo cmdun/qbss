@@ -1,0 +1,925 @@
+// Custom.scss
+// Option B: Include parts of Bootstrap
+
+// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "../node_modules/bootstrap/scss/functions";
+
+// 2. Include any default variable overrides here
+
+// $font-family-sans-serif: Helvetica, sans-serif;
+$link-decoration: none;
+
+$popover-body-padding-y: 0;
+$popover-body-padding-x: 0;
+$popover-max-width: 100%;
+
+// 3. Include remainder of required Bootstrap stylesheets
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/variables-dark";
+
+// 4. Include any default map overrides here
+
+// 5. Include remainder of required parts
+@import "../node_modules/bootstrap/scss/maps";
+@import "../node_modules/bootstrap/scss/mixins";
+@import "../node_modules/bootstrap/scss/root";
+
+// 6. Optionally include any other parts as needed
+// Update the import directory to point to it‘s location within node_modules
+$bootstrap-icons-font-dir: "/bootstrap-icons/font/fonts";
+
+// Import the Sass files as usual
+@import "../node_modules/bootstrap-icons/font/bootstrap-icons";
+
+@import "../node_modules/bootstrap/scss/alert";
+@import "../node_modules/bootstrap/scss/badge";
+@import "../node_modules/bootstrap/scss/buttons";
+@import "../node_modules/bootstrap/scss/button-group";
+@import "../node_modules/bootstrap/scss/card";
+@import "../node_modules/bootstrap/scss/close";
+@import "../node_modules/bootstrap/scss/containers";
+@import "../node_modules/bootstrap/scss/dropdown";
+@import "../node_modules/bootstrap/scss/forms";
+@import "../node_modules/bootstrap/scss/grid";
+@import "../node_modules/bootstrap/scss/list-group";
+@import "../node_modules/bootstrap/scss/modal";
+@import "../node_modules/bootstrap/scss/nav";
+@import "../node_modules/bootstrap/scss/navbar";
+@import "../node_modules/bootstrap/scss/pagination";
+@import "../node_modules/bootstrap/scss/popover";
+@import "../node_modules/bootstrap/scss/reboot";
+@import "../node_modules/bootstrap/scss/spinners";
+@import "../node_modules/bootstrap/scss/tables";
+@import "../node_modules/bootstrap/scss/toasts";
+@import "../node_modules/bootstrap/scss/tooltip";
+@import "../node_modules/bootstrap/scss/transitions";
+@import "../node_modules/bootstrap/scss/type";
+
+@import "../node_modules/bootstrap/scss/helpers/position";
+@import "../node_modules/bootstrap/scss/helpers/visually-hidden";
+@import "../node_modules/bootstrap/scss/helpers/vr";
+
+// 7. Optionally include utilities API last to generate classes based on the Sass map in `_utilities.scss`
+@import "../node_modules/bootstrap/scss/utilities";
+@import "../node_modules/bootstrap/scss/utilities/api";
+
+// 8. Add additional custom code here
+
+@import "./themes/light.scss";
+@import "./themes/night.scss";
+
+@import "./dual-slider";
+@import "./dropdown-checklist";
+@import "./logo";
+@import "./buzzpoints";
+@import "./team-standings";
+
+code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.buttons {
+    border-bottom: .5px solid lightgray;
+    margin-bottom: .5em;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.custom-popover {
+    width: 250px;
+}
+
+// make sure content goes below entire row when row contains floats
+.float-row {
+    overflow: auto;
+}
+
+.high-contrast-question-text {
+    border: 1px solid slategray;
+    padding: 1em;
+    font-family: "Times New Roman", serif;
+    font-size: 20px;
+}
+
+.navbar {
+    background-color: #dfebfb;
+}
+
+.room-history {
+    border-top: .5px solid lightgray;
+}
+
+// Keep solo play focused on the question while leaving the existing controls and history intact.
+.reader-immersive {
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.reader-page-shell {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+    height: 0;
+    overflow: hidden;
+    padding-inline: clamp(1rem, 2vw, 2rem) !important;
+    padding-bottom: 4.4375rem !important;
+}
+
+.reader-layout-row {
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    margin-inline: 0;
+}
+
+.reader-immersive #settings {
+    position: relative;
+    order: 0 !important;
+    z-index: 1;
+    flex: 0 0 0;
+    width: auto;
+    max-width: 0;
+    min-width: 0;
+    height: 100%;
+    margin: 0 !important;
+    overflow: hidden;
+    padding: 0;
+    border-right: 1px solid transparent;
+    opacity: 0;
+    transform: translateX(-1.5rem);
+    transition: flex-basis .35s ease, max-width .35s ease, opacity .2s ease, transform .35s ease, visibility .35s;
+    visibility: hidden;
+}
+
+.settings-drawer-open .reader-layout-row #settings {
+    flex: 0 0 min(26rem, 34%);
+    max-width: 26rem;
+    padding: 1rem 1.25rem 1rem .5rem;
+    border-right-color: var(--bs-border-color);
+    opacity: 1;
+    overflow-y: auto;
+    transform: translateX(0);
+    visibility: visible;
+}
+
+.reader-immersive #settings > hr:first-child {
+    display: none;
+}
+
+.reader-immersive #content {
+    display: flex;
+    order: 1;
+    flex: 1 1 0;
+    flex-direction: column;
+    width: 0;
+    max-width: none;
+    min-height: 0;
+    height: 100%;
+    margin-inline: auto;
+    padding: 0 1rem 0;
+    overflow: hidden;
+    transition: flex-basis .35s ease, transform .35s ease;
+}
+
+.settings-drawer-open .reader-layout-row #content {
+    flex: 1 1 0;
+    transform: translateX(.35rem);
+}
+
+.wikipedia-drawer {
+    position: relative;
+    order: 0;
+    z-index: 1;
+    display: flex;
+    flex: 0 0 0;
+    width: auto;
+    max-width: 0;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+    border-right: 1px solid transparent;
+    background: var(--bs-body-bg);
+    opacity: 0;
+    transform: translateX(-1.5rem);
+    transition: flex-basis .35s ease, max-width .35s ease, opacity .2s ease, transform .35s ease, visibility .35s;
+    visibility: hidden;
+}
+
+.wikipedia-drawer-open .reader-layout-row .wikipedia-drawer {
+    flex: 0 0 50%;
+    max-width: 50%;
+    border-right-color: var(--bs-border-color);
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+}
+
+.wikipedia-workspace {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: .4rem;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.wikipedia-search {
+    flex: 0 0 auto;
+}
+
+.wikipedia-search .form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: inset 0 0 0 1px var(--bs-primary);
+}
+
+.wikipedia-results {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.wikipedia-result {
+    display: flex;
+    gap: .85rem;
+    padding: .9rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .75rem;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    cursor: pointer;
+}
+
+.wikipedia-result + .wikipedia-result {
+    margin-top: .65rem;
+}
+
+.wikipedia-result:hover,
+.wikipedia-result:focus-visible {
+    border-color: var(--bs-primary);
+    outline: none;
+}
+
+.wikipedia-result img {
+    flex: 0 0 4rem;
+    width: 4rem;
+    height: 4rem;
+    border-radius: .5rem;
+    object-fit: cover;
+}
+
+.wikipedia-result-title {
+    margin-bottom: .25rem;
+    color: var(--bs-link-color);
+    font-weight: 650;
+}
+
+.wikipedia-article {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.wikipedia-article-toolbar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: .6rem;
+    padding-bottom: .45rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.wikipedia-header-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--bs-emphasis-color);
+    font-size: 1.05rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#wikipedia-status:empty { display: none; }
+
+.wikipedia-article-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: .7rem .4rem .5rem 0;
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
+.wikipedia-article-body {
+    max-width: 58rem;
+    margin-inline: auto;
+    color: var(--bs-body-color);
+    font-size: 1rem;
+    line-height: 1.72;
+    overflow-wrap: anywhere;
+}
+
+.wikipedia-article-body h1,
+.wikipedia-article-body h2,
+.wikipedia-article-body h3,
+.wikipedia-article-body h4 {
+    margin: 1.5em 0 .55em;
+    color: var(--bs-emphasis-color);
+    line-height: 1.25;
+}
+
+.wikipedia-article-body h1 { font-size: clamp(1.8rem, 3vw, 2.5rem); }
+.wikipedia-article-body h2 { padding-bottom: .3em; border-bottom: 1px solid var(--bs-border-color); font-size: 1.55rem; }
+.wikipedia-article-body h3 { font-size: 1.2rem; }
+.wikipedia-article-body p { margin: 0 0 1em; }
+.wikipedia-article-body a { color: var(--bs-link-color); }
+.wikipedia-article-body img { max-width: min(100%, 48rem); height: auto; border-radius: .55rem; }
+.wikipedia-article-body figure { max-width: 100%; margin: 1rem auto; text-align: center; }
+.wikipedia-article-body figcaption { color: var(--bs-secondary-color); font-size: .875rem; }
+.wikipedia-article-body table { display: block; max-width: 100%; margin: 1rem 0; overflow-x: auto; border-collapse: collapse; }
+.wikipedia-article-body th,
+.wikipedia-article-body td { padding: .45rem .6rem; border: 1px solid var(--bs-border-color); }
+.wikipedia-article-body th { background: var(--bs-tertiary-bg); }
+.wikipedia-article-body blockquote { margin: 1rem 0; padding: .25rem 1rem; border-left: .25rem solid var(--bs-primary); color: var(--bs-secondary-color); }
+.wikipedia-article-body pre { max-width: 100%; padding: 1rem; overflow: auto; border-radius: .5rem; background: var(--bs-tertiary-bg); }
+.wikipedia-article-body .wikipedia-contents { margin: 1rem 0; padding: .85rem 1rem; border: 1px solid var(--bs-border-color); border-radius: .65rem; background: var(--bs-tertiary-bg); }
+.wikipedia-article-body .wikipedia-contents ul { margin: .5rem 0 0; padding-left: 1.25rem; }
+.wikipedia-article-body .wikipedia-contents li { margin: .2rem 0; }
+.wikipedia-article-body .wikipedia-infobox { margin: 0 0 1rem 1rem; padding: .6rem .8rem; border: 1px solid var(--bs-border-color); border-radius: .6rem; background: var(--bs-tertiary-bg); }
+.wikipedia-article-body .wikipedia-infobox summary { color: var(--bs-emphasis-color); cursor: pointer; font-weight: 650; }
+.wikipedia-article-body .wikipedia-infobox[open] { max-width: min(100%, 28rem); float: right; }
+.wikipedia-article-body .wikipedia-references { margin: .75rem 0; padding: .75rem 1rem; border: 1px solid var(--bs-border-color); border-radius: .6rem; background: var(--bs-tertiary-bg); }
+.wikipedia-article-body .wikipedia-references summary { cursor: pointer; font-weight: 650; }
+.wikipedia-article-body .wikipedia-references ol,
+.wikipedia-article-body .wikipedia-references ul { padding-left: 1.4rem; font-size: .9rem; }
+.wikipedia-attribution { max-width: 58rem; margin: 1.5rem auto 0; padding-top: .8rem; border-top: 1px solid var(--bs-border-color); }
+
+.reader-immersive #reader-stage {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    width: 100%;
+    max-width: 72rem;
+    min-height: 0;
+    margin-inline: auto;
+    padding: 0;
+    overflow: hidden;
+}
+
+.reader-fixed-header {
+    flex: 0 0 auto;
+    width: 100%;
+    padding-top: clamp(1rem, 3vh, 2rem);
+}
+
+.reader-question-area {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    padding-block: clamp(.5rem, 1.5vh, 1rem);
+    overflow: hidden;
+}
+
+.reader-immersive .reader-tile {
+    flex: 0 1 auto;
+    width: 100%;
+    max-width: 68rem;
+    min-height: 0;
+    max-height: 100%;
+    margin-inline: auto;
+    padding: clamp(1rem, 2.5vw, 2rem);
+    border: var(--bs-border-width) solid rgba(var(--bs-body-color-rgb), .2);
+    border-radius: 1rem;
+    background-color: var(--bs-body-bg);
+    background-color: color-mix(in srgb, var(--bs-body-bg) 96%, var(--bs-body-color) 4%);
+    box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .1);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.reader-immersive .reader-question-arrival {
+    animation: reader-question-arrival .18s ease-out both;
+}
+
+@keyframes reader-question-arrival {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.reader-immersive .reader-idle {
+    margin: auto;
+    text-align: center;
+}
+
+.reader-immersive #timer {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+    color: var(--bs-secondary-color);
+    font-size: 1rem;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    transition: background .25s ease, color .25s ease;
+}
+
+.reader-immersive #timer .fraction { font-size: inherit; }
+.reader-immersive #timer .face { color: var(--bs-body-color); font-weight: 600; }
+
+.reader-immersive #timer.reader-timer-warning {
+    background: transparent;
+    color: #dc9e32;
+}
+
+.reader-immersive #timer.reader-timer-urgent {
+    background: transparent;
+    color: #e95b50;
+}
+
+.reader-immersive #timer.reader-timer-warning .face,
+.reader-immersive #timer.reader-timer-urgent .face { color: inherit; }
+
+.reader-immersive .reader-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1.5rem;
+    width: 100%;
+    max-width: 68rem;
+    margin: 0 auto .75rem;
+}
+
+.reader-immersive #question {
+    width: 100%;
+    max-width: 66rem;
+    margin: clamp(.75rem, 2vh, 1.5rem) auto;
+    line-height: 1.65;
+}
+
+.reader-immersive #answer {
+    width: 100%;
+    max-width: 66rem;
+    margin-inline: auto;
+}
+
+.reader-immersive #room-history {
+    width: 100%;
+    max-width: 68rem;
+    margin: 0 auto .5rem;
+    padding-top: .5rem;
+    scroll-margin-bottom: 7rem;
+    flex: 0 1 auto;
+    max-height: 17vh;
+    overflow-y: auto;
+}
+
+.reader-immersive #room-history:empty {
+    display: none;
+}
+
+.reader-immersive #room-history li {
+    margin-block: .65rem;
+    padding: .75rem 1rem;
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-lg);
+    background-color: var(--bs-tertiary-bg);
+}
+
+.reader-immersive .reader-status {
+    justify-content: flex-start;
+}
+
+.reader-immersive #question-metadata {
+    margin-left: auto;
+    padding-left: 0 !important;
+}
+
+.reader-database-toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.625rem;
+    height: 2.375rem;
+    padding: .375rem .75rem;
+}
+
+.reader-layout-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+.reader-layout-row #content {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    transition: flex-basis .35s ease, transform .35s ease;
+}
+
+.database-drawer {
+    order: 2;
+    flex: 0 0 0;
+    width: auto;
+    max-width: 0;
+    min-width: 0;
+    padding: 0;
+    border-left: 1px solid transparent;
+    background-color: var(--bs-body-bg);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(1.5rem);
+    transition: flex-basis .35s ease, max-width .35s ease, opacity .2s ease, transform .35s ease, visibility .35s;
+    visibility: hidden;
+}
+
+.database-drawer-frame-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--bs-body-bg);
+}
+
+.database-drawer-frame {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    background-color: var(--bs-body-bg);
+}
+
+.anki-drawer {
+    order: 3;
+    display: flex;
+    flex: 0 0 0;
+    width: 0;
+    max-width: 0;
+    min-width: 0;
+    overflow: hidden;
+    border-left: 1px solid transparent;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(1.5rem);
+    transition: flex-basis .35s ease, max-width .35s ease, opacity .2s ease, transform .35s ease, visibility .35s;
+}
+
+.anki-drawer-open .anki-drawer {
+    flex: 0 0 45%;
+    max-width: 45%;
+    border-left-color: var(--bs-border-color);
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+.anki-workspace { display: flex; flex: 1 1 auto; flex-direction: column; gap: .7rem; min-width: 0; min-height: 0; padding: 1rem; }
+#anki-status:empty { display: none; }
+.anki-form { min-height: 0; overflow-y: auto; padding-right: .3rem; }
+.anki-form textarea { resize: vertical; min-height: 2.5rem; }
+
+.anki-drawer-open.wikipedia-drawer-open .reader-layout-row #content {
+    flex: 0 0 0;
+    max-width: 0;
+    padding-inline: 0;
+    overflow: hidden;
+    transform: none;
+}
+
+.anki-drawer-open.wikipedia-drawer-open .wikipedia-drawer,
+.anki-drawer-open.wikipedia-drawer-open .anki-drawer {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.anki-drawer-open.database-drawer-open:not(.wikipedia-drawer-open) .reader-layout-row #content {
+    flex: 1 1 50%;
+    max-width: 50%;
+    transform: none;
+}
+
+.anki-drawer-open.database-drawer-open:not(.wikipedia-drawer-open) .database-drawer,
+.anki-drawer-open.database-drawer-open:not(.wikipedia-drawer-open) .anki-drawer {
+    flex: 0 0 25%;
+    max-width: 25%;
+    transform: none;
+}
+
+.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .wikipedia-drawer,
+.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .database-drawer,
+.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .anki-drawer {
+    flex: 0 0 33.333%;
+    max-width: 33.333%;
+}
+
+.database-drawer-open .reader-layout-row #content {
+    flex: 1 1 56%;
+    max-width: none;
+    transform: translateX(-.5rem);
+}
+
+.wikipedia-drawer-open.database-drawer-open .reader-layout-row #content {
+    flex: 0 0 0;
+    width: 0;
+    max-width: 0;
+    padding-inline: 0;
+    overflow: hidden;
+    transform: none;
+}
+
+.wikipedia-drawer-open.database-drawer-open .reader-layout-row .wikipedia-drawer,
+.wikipedia-drawer-open.database-drawer-open .database-drawer {
+    flex: 0 0 50%;
+    max-width: 50%;
+    transform: translateX(0);
+}
+
+.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .reader-layout-row .wikipedia-drawer,
+.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .reader-layout-row .database-drawer,
+.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .reader-layout-row .anki-drawer {
+    flex: 0 0 33.333%;
+    max-width: 33.333%;
+}
+
+.database-drawer-open .database-drawer {
+    flex: 0 0 44%;
+    max-width: 44%;
+    padding: 0;
+    border-left-color: var(--bs-border-color);
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+}
+
+.reader-immersive .container-fluid.position-fixed.bottom-0 {
+    z-index: 1030;
+    padding-inline: clamp(1rem, 4vw, 4rem);
+    pointer-events: none;
+}
+
+.reader-immersive #buttons {
+    display: flex;
+    flex: 0 0 100%;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    width: 100%;
+    max-width: 100%;
+    border-top: var(--bs-border-width) solid var(--bs-border-color);
+    pointer-events: auto;
+}
+
+.reader-immersive #buttons .float-end {
+    float: none !important;
+    margin-left: 0 !important;
+}
+
+.reader-immersive #buttons .btn {
+    border-radius: .7rem;
+}
+
+@media (max-width: 575.98px) {
+    .reader-immersive #question-info {
+        font-size: .875rem;
+    }
+
+    .reader-immersive #buttons {
+        gap: .35rem;
+        padding-inline: .25rem;
+    }
+
+    .reader-immersive .reader-tile {
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+
+    .reader-immersive .reader-status {
+        gap: .5rem;
+        font-size: .9rem;
+    }
+
+    .reader-immersive #question-metadata {
+        margin-left: 0;
+    }
+
+    .database-drawer {
+        position: fixed;
+        z-index: 1050;
+        top: 4.75rem;
+        right: 0;
+        bottom: 4.4375rem;
+        width: min(90vw, 28rem);
+        max-width: none;
+        padding: 0;
+        transform: translateX(100%);
+    }
+
+    .wikipedia-drawer {
+        position: fixed;
+        z-index: 1050;
+        top: 4.75rem;
+        bottom: 4.4375rem;
+        left: 0;
+        width: 50vw;
+        max-width: none;
+        background: var(--bs-body-bg);
+        transform: translateX(-100%);
+    }
+
+    .wikipedia-drawer-open .reader-layout-row .wikipedia-drawer {
+        flex: none;
+        width: 50vw;
+        max-width: none;
+        transform: translateX(0);
+    }
+
+    .reader-immersive #settings {
+        position: fixed;
+        z-index: 1050;
+        top: 4.75rem;
+        bottom: 4.4375rem;
+        left: 0;
+        width: min(90vw, 28rem);
+        max-width: none;
+        height: auto;
+        padding: 0 1rem;
+        border-right: 1px solid var(--bs-border-color);
+        background-color: var(--bs-body-bg);
+        transform: translateX(-100%);
+    }
+
+    .settings-drawer-open .reader-layout-row #settings {
+        flex: none;
+        width: min(90vw, 28rem);
+        padding: 1rem;
+        transform: translateX(0);
+    }
+
+    .settings-drawer-open .reader-layout-row #content {
+        transform: translateX(8vw);
+    }
+
+    .database-drawer-frame-wrap {
+        height: 100%;
+        min-height: 0;
+        margin: 0;
+    }
+
+    .database-drawer-open .reader-layout-row #content {
+        flex-basis: 100%;
+        transform: translateX(-8vw);
+    }
+
+    .wikipedia-drawer-open.database-drawer-open .reader-layout-row #content {
+        flex: 0 0 0;
+        width: 0;
+        max-width: 0;
+    }
+
+    .wikipedia-drawer-open.database-drawer-open .reader-layout-row .wikipedia-drawer,
+    .wikipedia-drawer-open.database-drawer-open .database-drawer {
+        flex: none;
+        width: 50vw;
+        max-width: none;
+        padding: 0;
+        transform: translateX(0);
+    }
+
+    .database-drawer-open .database-drawer {
+        flex: none;
+        width: min(90vw, 28rem);
+        max-width: none;
+        padding: 0;
+        transform: translateX(0);
+    }
+
+    .settings-drawer-open .database-drawer {
+        visibility: hidden;
+    }
+
+    .wikipedia-drawer-open .reader-layout-row #content {
+        transform: translateX(8vw);
+    }
+
+    .wikipedia-drawer-open .reader-layout-row #settings {
+        visibility: hidden;
+    }
+
+    .wikipedia-drawer-open.database-drawer-open .reader-layout-row #content {
+        flex: 0 0 0;
+        width: 0;
+        max-width: 0;
+        padding-inline: 0;
+        transform: none;
+    }
+}
+
+.database-embedded {
+    min-height: 100%;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    overflow-x: hidden;
+}
+
+.database-embedded #navbar {
+    display: none;
+}
+
+.database-embedded .container-xl {
+    width: 100%;
+    max-width: none;
+    margin: 0 !important;
+    padding: .75rem !important;
+}
+
+.database-embedded .container-xl > .row > .col-12 > p {
+    display: none;
+}
+
+.database-embedded .database-embedded-hidden {
+    display: none !important;
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .database-drawer-open .reader-layout-row #content {
+        flex: 1 1 50%;
+    }
+
+    .database-drawer-open .database-drawer {
+        flex-basis: 50%;
+        max-width: 50%;
+    }
+
+    .settings-drawer-open .reader-layout-row #settings {
+        flex-basis: 32%;
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reader-immersive #timer,
+    .reader-immersive .reader-question-arrival,
+    .reader-layout-row #content,
+    .reader-immersive #settings,
+    .wikipedia-drawer,
+    .database-drawer {
+        animation: none;
+        transition: none;
+    }
+}
+
+.small-alert {
+    --bs-alert-padding-y: 0.5rem;
+}
+
+.text-highlight {
+    background-color: #f8ff00;
+    color: $dark;
+}
+
+.timer {
+    font-size: 250%;
+}
+
+.timer .fraction {
+    font-size: 50%;
+}
+
+.user-score {
+    background-color: var(--user-score-background);
+}
+
+a.list-group-item:hover {
+    color: inherit;
+}
+
+#difficulty-settings {
+    min-height: 90px;
+}
+
+#multiplayer-name {
+    margin-top: 3px
+}
+
+#set-settings {
+    min-height: 90px;
+}
+

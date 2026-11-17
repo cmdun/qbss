@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>QBSS - Library - Starred Questions</title>
+  <!--#include virtual="/ssi/head.html" -->
+</head>
+<body>
+  <!--#include virtual="/ssi/nav.html" -->
+  <main class="container-xl mt-3 mb-5 pb-5">
+    <h1>Starred questions</h1>
+    <p class="text-muted">Browse your saved questions and practice a filtered selection.</p>
+    <div class="d-flex flex-wrap gap-2 mb-3" role="group" aria-label="Question type">
+      <button class="btn btn-primary" id="show-tossups" type="button" aria-pressed="true">Tossups</button>
+      <button class="btn btn-outline-primary" id="show-bonuses" type="button" aria-pressed="false">Bonuses</button>
+      <a class="btn btn-outline-secondary ms-auto" href="/local/library/">Saved packets</a>
+    </div>
+    <div class="row g-2 mb-3">
+      <div class="col-md-4"><label class="visually-hidden" for="stars-search">Search starred questions</label><input class="form-control" id="stars-search" type="search" placeholder="Search text or answer"></div>
+      <div class="col-md-3"><label class="visually-hidden" for="stars-set">Set</label><select class="form-select" id="stars-set"><option value="">All sets</option></select></div>
+      <div class="col-md-3"><label class="visually-hidden" for="stars-category">Category</label><select class="form-select" id="stars-category"><option value="">All categories</option></select></div>
+      <div class="col-md-2"><label class="visually-hidden" for="stars-difficulty">Difficulty</label><select class="form-select" id="stars-difficulty"><option value="">All difficulties</option></select></div>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <span class="text-muted me-auto" id="stars-count" role="status"></span>
+      <button class="btn btn-outline-danger" id="stars-clear" type="button" disabled>Clear starred tossups</button>
+      <button class="btn btn-primary" id="stars-play" type="button" disabled>Practice shown questions</button>
+    </div>
+    <div id="stars-list"></div>
+    <nav id="stars-pagination" aria-label="Starred question pages" class="mt-3"></nav>
+  </main>
+  <div class="modal fade" id="stars-clear-modal" tabindex="-1" aria-labelledby="stars-clear-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="stars-clear-title">Clear starred questions?</h2>
+          <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="stars-clear-message"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" id="stars-clear-confirm" type="button">Clear stars</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/node_modules/dompurify/dist/purify.min.js"></script>
+  <script type="module" src="./index.js"></script>
+</body>
+</html>

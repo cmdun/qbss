@@ -1,0 +1,52 @@
+{
+  "name": "qbss-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "desktop/main.js",
+  "scripts": {
+    "app": "electron .",
+    "build:client": "npm --prefix qbreader-source run build",
+    "package:mac": "npm run build:client && node desktop/package-macos.js",
+    "package:win": "npm run build:client && node desktop/package-windows.js"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "org.qbreader.local",
+    "productName": "QBSS",
+    "asar": true,
+    "disableDefaultIgnoredFiles": true,
+    "directories": {
+      "output": "release/windows"
+    },
+    "files": [
+      "desktop/**/*",
+      "local/**/*",
+      "qbreader-source/client/**/*",
+      "qbreader-source/shared/**/*",
+      "qbreader-source/node_modules/**/*",
+      "qbreader-source/LICENSE",
+      "qbreader-source/package.json",
+      "!desktop/build-config.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md",
+      "DATABASE_SETUP.md"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "desktop/assets/qbss-icon.ico",
+      "artifactName": "QBSS-${version}-windows-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "QBSS"
+    }
+  }
+}

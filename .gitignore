@@ -1,0 +1,23 @@
+# Local question and practice data can be large or personal.
+/*.sqlite*
+/wikipedia-cache/
+/2026-07-18_16_15_24/
+**/.DS_Store
+.env
+.env.*
+*.log
+*.pyc
+
+# Source and generated dependency/build artifacts.
+**/node_modules/
+**/__pycache__/
+/release/
+/desktop/assets/qbreader.iconset/
+/desktop/assets/qbreader.icns
+/desktop/build-config.json
+qbreader-source/client/**/*.min.js
+qbreader-source/client/**/*.css
+qbreader-source/client/**/*.css.map
+
+# Local release planning notes, kept out of the public repository.
+/FINAL_RELEASE_CHECKLIST.md

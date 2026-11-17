@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>QBSS - Local Stats</title>
+  <!--#include virtual="/ssi/head.html" -->
+  <style>
+    .stats-chart { min-height: 14rem; overflow: hidden; }
+    .stats-chart svg { display: block; width: 100%; height: auto; }
+    .stats-chart-label { fill: currentColor; font-size: 12px; opacity: .75; }
+    #difficulty-filter { position: relative; }
+    .difficulty-options { display: none; position: absolute; z-index: 1000; min-width: 100%; background: var(--bs-body-bg); color: var(--bs-body-color); border: 1px solid var(--bs-border-color); border-radius: var(--bs-border-radius); box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15); }
+    #difficulty-filter[open] .difficulty-options { display: block; }
+    .difficulty-options label { white-space: nowrap; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <!--#include virtual="/ssi/nav.html" -->
+  <main class="container-xl mt-3 mb-5 pb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+      <div>
+        <h1 class="mb-1">Stats</h1>
+        <p class="text-muted mb-0" id="stats-greeting">Your practice history and performance, stored on this device.</p>
+      </div>
+      <span class="badge text-bg-secondary" id="stats-scope">All-time · All modes</span>
+    </div>
+
+    <section class="card mb-4" aria-labelledby="filters-heading">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h2 class="h5 mb-0" id="filters-heading">Filters</h2>
+          <button class="btn btn-sm btn-outline-secondary" id="reset-filters" type="button">Reset</button>
+        </div>
+        <div class="row g-2 align-items-end">
+          <div class="col-6 col-md-4"><label class="form-label" for="date-range">Date range</label><select class="form-select" id="date-range"><option value="all">All time</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="custom">Custom</option></select></div>
+          <div class="col-6 col-md-4"><label class="form-label" for="question-type">Question type</label><select class="form-select" id="question-type"><option value="">All</option><option value="tossup">Tossups</option><option value="bonus">Bonuses</option></select></div>
+          <div class="col-12 col-md-4"><label class="form-label" for="mode">Play mode</label><select class="form-select" id="mode"><option value="">All modes</option></select></div>
+          <div class="col-6 col-md-3 custom-date d-none"><label class="form-label" for="date-from">From</label><input class="form-control" type="date" id="date-from"></div>
+          <div class="col-6 col-md-3 custom-date d-none"><label class="form-label" for="date-to">Through</label><input class="form-control" type="date" id="date-to"></div>
+        </div>
+        <details class="mt-3">
+          <summary class="btn btn-sm btn-outline-secondary">More filters and chart options</summary>
+          <div class="row g-2 align-items-end mt-1">
+            <div class="col-6 col-md-3"><label class="form-label" for="set-name">Set</label><select class="form-select" id="set-name"><option value="">All sets</option></select></div>
+            <div class="col-6 col-md-3"><span class="form-label d-block">Difficulties</span><details id="difficulty-filter"><summary class="btn btn-outline-secondary w-100 text-start">All difficulties</summary><div class="difficulty-options p-2" id="difficulty-options" style="max-height: 16rem; overflow:auto"></div></details></div>
+            <div class="col-6 col-md-3"><label class="form-label" for="category">Category</label><select class="form-select" id="category"><option value="">All categories</option></select></div>
+            <div class="col-6 col-md-3"><label class="form-label" for="subcategory">Subcategory</label><select class="form-select" id="subcategory"><option value="">All subcategories</option></select></div>
+            <div class="col-6 col-md-3"><label class="form-label" for="trend-period">Trend interval</label><select class="form-select" id="trend-period"><option value="month">Monthly</option><option value="week">Weekly</option></select></div>
+            <div class="col-6 col-md-3"><label class="form-label" for="trend-metric">Trend metric</label><select class="form-select" id="trend-metric"><option value="pointsPerTossup">Tossup points per question</option><option value="powerRate">Power rate</option><option value="negRate">Neg rate</option><option value="pointsPerBonus">Points per bonus (PPB)</option></select></div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div id="loading" class="text-center py-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading stats</span></div></div>
+    <div id="error-state" class="alert alert-danger d-none" role="alert"></div>
+    <div id="empty-state" class="card d-none mb-4"><div class="card-body text-center py-5"><h2 class="h4">No practice records for these filters</h2><p class="text-muted mb-0">Try a wider date range or play a few questions to start building your Stats.</p></div></div>
+    <div id="stats-content" class="d-none">
+      <ul class="nav nav-pills mb-3" role="tablist" aria-label="Stats sections">
+        <li class="nav-item" role="presentation"><button class="nav-link active" id="stats-overview-tab" data-bs-toggle="pill" data-bs-target="#stats-overview-pane" type="button" role="tab" aria-controls="stats-overview-pane" aria-selected="true">Overview</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" id="stats-categories-tab" data-bs-toggle="pill" data-bs-target="#stats-categories-pane" type="button" role="tab" aria-controls="stats-categories-pane" aria-selected="false">Categories</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" id="stats-history-tab" data-bs-toggle="pill" data-bs-target="#stats-history-pane" type="button" role="tab" aria-controls="stats-history-pane" aria-selected="false">Sessions and questions</button></li>
+      </ul>
+      <div class="tab-content">
+      <div class="tab-pane fade show active" id="stats-overview-pane" role="tabpanel" aria-labelledby="stats-overview-tab" tabindex="0">
+      <section class="row row-cols-2 row-cols-lg-4 g-3 mb-4" id="overview" aria-label="Practice overview"></section>
+
+      <section class="row g-3 mb-4">
+        <div class="col-12">
+          <div class="card h-100"><div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2"><h2 class="h5 mb-0">Progress</h2><span class="small text-muted" id="trend-caption"></span></div>
+            <div class="stats-chart mt-3" id="trend-chart" role="img" aria-label="Practice performance over time"></div>
+          </div></div>
+        </div>
+      </section>
+
+      <section class="card mb-4" aria-labelledby="study-recommendations-heading">
+        <div class="card-body">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div><h2 class="h5 mb-1" id="study-recommendations-heading">Study recommendations</h2><p class="small text-muted mb-0">Suggestions use these filters. Topic ideas come from answerlines you missed and show the supporting questions.</p></div>
+            <div class="d-flex align-items-center gap-2"><label class="small" for="recommendation-length">Session length</label><select class="form-select form-select-sm" id="recommendation-length" style="width:auto"><option value="10">Up to 10</option><option value="20">Up to 20</option></select><button class="btn btn-primary btn-sm" id="start-recommendation" type="button">Build practice</button></div>
+          </div>
+          <p class="small text-muted mt-2 mb-3" id="recommendation-session-summary"></p>
+          <div class="row g-3">
+            <div class="col-12 col-lg-5"><h3 class="h6">Areas to work on</h3><div id="recommendation-areas"></div></div>
+            <div class="col-12 col-lg-7"><h3 class="h6">Specific topics to review</h3><div id="recommendation-topics"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="row g-3 mb-4">
+        <div class="col-12 col-xl-6"><div class="card h-100"><div class="card-body"><h2 class="h5">Strengths</h2><p class="small text-muted">Areas above your own average, with at least 10 attempts.</p><div id="strengths"></div></div></div></div>
+        <div class="col-12 col-xl-6"><div class="card h-100"><div class="card-body"><h2 class="h5">Focus areas</h2><p class="small text-muted">Areas below your own average, with at least 10 attempts.</p><div id="focus-areas"></div></div></div></div>
+      </section>
+      </div>
+      <div class="tab-pane fade" id="stats-categories-pane" role="tabpanel" aria-labelledby="stats-categories-tab" tabindex="0">
+      <section class="card mb-4"><div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2"><h2 class="h5 mb-0">Category breakdown</h2><span class="small text-muted">Practice questions from this filtered history, or only your negs</span></div>
+        <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Category</th><th>Subcategory</th><th class="text-end">Tossups</th><th class="text-end">Power rate</th><th class="text-end">PPTU</th><th class="text-end">Negs</th><th class="text-end">Bonuses</th><th class="text-end">PPB</th><th>Practice</th></tr></thead><tbody id="category-rows"></tbody></table></div>
+      </div></section>
+      </div>
+      <div class="tab-pane fade" id="stats-history-pane" role="tabpanel" aria-labelledby="stats-history-tab" tabindex="0">
+      <section class="card mb-4"><div class="card-body">
+        <h2 class="h5">Recent sessions and imports</h2>
+        <div class="list-group" id="sessions"></div>
+        <p id="sessions-empty" class="text-muted d-none mb-0">No sessions match these filters.</p>
+      </div></section>
+
+      <section class="card"><div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2"><h2 class="h5 mb-0">Recent questions</h2><span class="small text-muted" id="question-count"></span></div>
+        <div class="list-group" id="questions"></div>
+      </div></section>
+      </div>
+      </div>
+    </div>
+  </main>
+  <script src="/username-greeting.js"></script>
+  <script type="module" src="./index.js"></script>
+</body>
+</html>

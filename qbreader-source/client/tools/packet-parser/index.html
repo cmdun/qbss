@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>QBSS - Packet Parser</title>
+    <!--#include virtual="/ssi/head.html" -->
+    <meta name="description" content="Parse packets for use in QBSS.">
+</head>
+
+<body>
+    <!--#include virtual="/ssi/nav.html" -->
+
+    <div class="container mt-3">
+        <p>
+            Note: All parsing is done <a href="https://github.com/qbreader/qb-packet-parser">client-side</a>; packets are never sent to
+            a server.
+        </p>
+        <form class="mb-3" id="form">
+            <div class="mb-3">
+                <label for="file-input" class="form-label">
+                    Select one or more <code>.docx</code> files to parse (select multiple files at once by holding down Shift or
+                    Control and clicking):
+                </label>
+                <input class="form-control" type="file" id="file-input"
+                    accept=".doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    multiple>
+            </div>
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="has-question-numbers" checked>
+                    <label class="form-check-label" for="has-question-numbers">Has question numbers</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="has-category-tags" checked>
+                    <label class="form-check-label" for="has-category-tags">Has category tags</label>
+                </div>
+                <hr>
+                Output format (choose QBReader format to play a packet in QBSS):
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="format" id="buzzpoint-format">
+                    <label class="form-check-label" for="buzzpoint-format">Buzzpoint</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="format" id="modaq-format">
+                    <label class="form-check-label" for="modaq-format">MODAQ</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="format" id="qbreader-format" checked>
+                    <label class="form-check-label" for="qbreader-format">QB Reader</label>
+                </div>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="button" class="btn btn-success d-none" id="download-all">Download All</button>
+            </div>
+        </form>
+        <ul class="list-group mb-3" id="file-output"></ul>
+        <div class="d-none" id="warnings">
+            <h4>Warnings</h4>
+            <ul class="list-group" id="warning-list"></ul>
+        </div>
+    </div>
+
+
+    <script defer src="/node_modules/jszip/dist/jszip.min.js"></script>
+    <script defer src="/node_modules/file-saver/dist/FileSaver.min.js"></script>
+    <script type="module" src="./index.js"></script>
+</body>
+
+</html>

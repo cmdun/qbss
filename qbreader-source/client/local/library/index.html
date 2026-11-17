@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>QBSS - Library - Saved Packets</title>
+  <!--#include virtual="/ssi/head.html" -->
+</head>
+<body>
+  <!--#include virtual="/ssi/nav.html" -->
+  <main class="container mt-3 mb-5">
+    <h1>Saved packets</h1>
+    <p>Packets are stored locally on this Mac.</p>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <a class="btn btn-outline-primary" href="/local/stars/">Starred questions</a>
+      <a class="btn btn-outline-primary" href="/tools/packet-parser/">Import DOCX packets</a>
+      <a class="btn btn-outline-primary" href="/tools/packet-viewer/">Packet viewer</a>
+    </div>
+    <form id="import-form" class="mb-4">
+      <label class="form-label" for="packet-file">Import a QBReader JSON packet</label>
+      <input class="form-control mb-2" id="packet-file" type="file" accept=".json,application/json" required>
+      <button class="btn btn-primary" type="submit">Preview import</button>
+    </form>
+    <div id="preview" class="d-none card card-body mb-4"></div>
+    <h2>Saved packets</h2>
+    <div id="packet-list" class="list-group"></div>
+    <p id="empty-state" class="text-muted d-none">No packets saved yet.</p>
+  </main>
+  <script type="module" src="./index.js"></script>
+</body>
+</html>

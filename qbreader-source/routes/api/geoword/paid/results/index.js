@@ -1,0 +1,51 @@
+import getUser from '../../../../../database/account-info/get-user.js';
+import hasPacketPrivileges from '../../../../../database/geoword/has-packet-privileges.js';
+import getBuzzCount from '../../../../../database/geoword/get-buzz-count.js';
+import getQuestionCount from '../../../../../database/geoword/get-question-count.js';
+
+import audioRouter from './audio.js';
+import buzzpointsRouter from './buzzpoints.js';
+import categoryStatsRouter from './category-stats.js';
+import compareRouter from './compare.js';
+import hasTeamRouter from './has-team.js';
+import leaderboardRouter from './leaderboard.js';
+import packetRouter from './packet.js';
+import statsRouter from './stats.js';
+import teamRouter from './team.js';
+import teamLeaderboardRouter from './team-leaderboard.js';
+
+import { Router } from 'express';
+
+const router = Router();
+
+router.use(async (req, res, next) => {
+  const { username } = req.session;
+  const { packetName } = req.query;
+  const user = await getUser(username);
+
+  const [privileged, buzzCount, questionCount] = await Promise.all([
+    hasPacketPrivileges(packetName, user._id),
+    getBuzzCount(packetName, user._id),
+    getQuestionCount(packetName)
+  ]);
+
+  if (!privileged && buzzCount < questionCount) {
+    res.status(403).send('You must finish the game before viewing results.');
+    return;
+  }
+
+  next();
+});
+
+router.use('/audio', audioRouter);
+router.use('/buzzpoints', buzzpointsRouter);
+router.use('/category-stats', categoryStatsRouter);
+router.use('/compare', compareRouter);
+router.use('/has-team', hasTeamRouter);
+router.use('/leaderboard', leaderboardRouter);
+router.use('/packet', packetRouter);
+router.use('/stats', statsRouter);
+router.use('/team', teamRouter);
+router.use('/team-leaderboard', teamLeaderboardRouter);
+
+export default router;

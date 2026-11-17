@@ -1,0 +1,70 @@
+<nav class="navbar navbar-expand-lg" id="navbar" style="z-index: 10">
+    <div class="container-fluid">
+        <a class="navbar-brand ms-1 py-0" id="logo" href="/">
+            <span class="logo-prefix">QB</span><span class="logo-suffix">SS</span>
+        </a>
+        <button class="navbar-toggler" data-bs-target="#navbarSupportedContent" data-bs-toggle="collapse" type="button"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0" id="navbar-navigation">
+                <a class="nav-link" href="/play/combined/">Study</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="/db/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Database
+                    </a>
+                    <ul class="dropdown-menu">
+                        <a class="dropdown-item" href="/db/">Search</a>
+                        <a class="dropdown-item" href="/db/set-list/">Set List</a>
+                        <a class="dropdown-item" href="/db/frequency-list/">Frequency List</a>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="/local/library/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Library
+                    </a>
+                    <ul class="dropdown-menu">
+                        <a class="dropdown-item" href="/local/stars/">Starred Questions</a>
+                        <a class="dropdown-item" href="/local/library/">Saved Packets</a>
+                        <a class="dropdown-item" href="/tools/packet-parser/">Import DOCX Packets</a>
+                        <a class="dropdown-item" href="/tools/packet-viewer/">Packet Viewer</a>
+                    </ul>
+                </li>
+                <a class="nav-link" href="/local/stats/">Stats</a>
+                <a class="nav-link" href="/settings/">Settings</a>
+            </div>
+            <ul class="navbar-nav mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <button id="bd-theme" class="btn btn-link nav-link dropdown-toggle d-flex align-items-center"
+                        data-bs-toggle="dropdown" aria-haspopup="menu">
+                        <span class="theme-icon-active"><i class="bi bi-moon-stars-fill"></i></span>
+                        <span class="d-lg-none ms-2" id="bd-theme-text">Toggle theme</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <button type="button" class="dropdown-item d-flex" data-bs-theme-value="light">
+                            <i class="bi bi-sun-fill me-2"></i>Light<i class="bi bi-check2 ms-auto d-none"></i>
+                        </button>
+                        <button type="button" class="dropdown-item d-flex" data-bs-theme-value="night">
+                            <i class="bi bi-moon-stars-fill me-2"></i>Night<i class="bi bi-check2 ms-auto d-none"></i>
+                        </button>
+                        <button type="button" class="dropdown-item d-flex" data-bs-theme-value="custom">
+                            <i class="bi bi-palette-fill me-2"></i>Custom<i class="bi bi-check2 ms-auto d-none"></i>
+                        </button>
+                        <button type="button" class="dropdown-item d-flex active" data-bs-theme-value="auto">
+                            <i class="bi bi-circle-half me-2"></i>Auto<i class="bi bi-check2 ms-auto d-none"></i>
+                        </button>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.querySelectorAll('#navbar-navigation a').forEach(link => {
+        const path = window.location.pathname;
+        const href = link.getAttribute('href');
+        if (href !== '/' && path.startsWith(href)) { link.classList.add('active'); }
+    });
+</script>

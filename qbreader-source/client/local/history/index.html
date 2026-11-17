@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>QBSS - Local History</title>
+  <!--#include virtual="/ssi/head.html" -->
+</head>
+<body>
+  <!--#include virtual="/ssi/nav.html" -->
+  <main class="container mt-3 mb-5">
+    <h1>Practice history</h1>
+    <p>Session scores and question outcomes are saved locally in <code>personal.sqlite</code>.</p>
+    <div id="sessions" class="list-group"></div>
+    <p id="empty-state" class="text-muted d-none">No practice sessions saved yet.</p>
+    <section id="session-detail" class="mt-4"></section>
+  </main>
+  <script type="module" src="./index.js"></script>
+</body>
+</html>
