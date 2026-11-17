@@ -10,9 +10,7 @@ const ICONSET = path.join(ROOT, 'desktop', 'assets', 'qbreader.iconset');
 const ICON_PATH = path.join(ROOT, 'desktop', 'assets', 'qbreader.icns');
 const OUTPUT = path.join(ROOT, 'release', 'macos');
 const DMG_PATH = path.join(OUTPUT, `QBSS-1.0.0-macos-${process.arch}.dmg`);
-const ELECTRON_ZIP_DIR = '/private/tmp/local-qbreader-electron-zips';
 const ELECTRON_VERSION = JSON.parse(readFileSync(path.join(ROOT, 'node_modules', 'electron', 'package.json'), 'utf8')).version;
-const ELECTRON_ZIP = path.join(ELECTRON_ZIP_DIR, `electron-v${ELECTRON_VERSION}-darwin-${process.arch}.zip`);
 const APP_NAME = 'QBSS';
 const swiftModuleCache = '/private/tmp/local-qbreader-swift-cache';
 const iconChunks = [
@@ -43,9 +41,6 @@ const iconFile = Buffer.alloc(8);
 iconFile.write('icns', 0, 4, 'ascii');
 iconFile.writeUInt32BE(chunks.reduce((length, chunk) => length + chunk.length, 8), 4);
 writeFileSync(ICON_PATH, Buffer.concat([iconFile, ...chunks]));
-mkdirSync(ELECTRON_ZIP_DIR, { recursive: true });
-rmSync(ELECTRON_ZIP, { force: true });
-execFileSync('ditto', ['-c', '-k', '--keepParent', path.join(ROOT, 'node_modules', 'electron', 'dist', 'Electron.app'), ELECTRON_ZIP]);
 rmSync(OUTPUT, { recursive: true, force: true });
 
 const apps = await packager({
@@ -55,7 +50,6 @@ const apps = await packager({
   arch: process.arch,
   out: OUTPUT,
   electronVersion: ELECTRON_VERSION,
-  electronZipDir: ELECTRON_ZIP_DIR,
   overwrite: true,
   asar: true,
   asarIntegrityDigest: false,

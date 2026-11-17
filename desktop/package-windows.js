@@ -15,6 +15,7 @@ rmSync(OUTPUT, { recursive: true, force: true });
 execFileSync(process.execPath, [
   path.join(ROOT, 'node_modules', 'electron-builder', 'cli.js'),
   '--win', 'nsis',
+  '--publish', 'never',
   `--${process.arch}`
 ], { cwd: ROOT, stdio: 'inherit' });
 
