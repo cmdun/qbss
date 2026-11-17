@@ -4,7 +4,7 @@ QBSS is a desktop app for practicing quiz bowl questions, exploring topics in Wi
 
 ## Install
 
-Download the installer for your computer from the [QBSS Releases page](https://github.com/cmdun/qbss/releases):
+Prebuilt installers are published on the [QBSS Releases page](https://github.com/cmdun/qbss/releases) as platform builds become available. Use the installer listed for your computer:
 
 - **macOS:** Open the `.dmg` file and drag **QBSS** into **Applications**. Open QBSS from Applications.
 - **Windows:** Open the `QBSS-1.0.0-windows-x64.exe` installer and follow the installation steps. Start QBSS from the Start menu or desktop shortcut.
