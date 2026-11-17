@@ -1,0 +1,84 @@
+name: Build and publish QBSS installers
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (use v1.0.0-preview.1 for the first install check)
+        required: true
+        default: v1.0.0-preview.1
+
+permissions:
+  contents: write
+
+jobs:
+  build-installers:
+    name: Build ${{ matrix.platform }} installer
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macOS Apple silicon
+            runner: macos-15
+            command: package:mac
+            artifact: release/macos/*.dmg
+          - platform: Windows x64
+            runner: windows-latest
+            command: package:win
+            artifact: release/windows/*.exe
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out QBSS
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install desktop build dependencies
+        run: npm ci
+
+      - name: Install QBReader client dependencies
+        run: npm ci
+        working-directory: qbreader-source
+
+      - name: Build installer
+        run: npm run ${{ matrix.command }}
+
+      - name: Save installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: QBSS-${{ matrix.platform }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+          compression-level: 0
+
+  publish-prerelease:
+    name: Publish installers as a prerelease
+    needs: build-installers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@v4
+        with:
+          path: release-files
+          merge-multiple: true
+
+      - name: Create GitHub prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          cat > release-notes.md <<'EOF'
+          QBSS 1.0.0 installation preview.
+
+          Includes a macOS Apple silicon DMG and a Windows x64 Setup.exe. These installers do not include a question database or personal study data; set up a database separately after installing.
+
+          The installers are unsigned and may show an operating-system security notice. Please report any installation issues before the final 1.0.0 release.
+          EOF
+          gh release create "$RELEASE_TAG" release-files/* \
+            --title "QBSS ${RELEASE_TAG#v}" \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --notes-file release-notes.md
