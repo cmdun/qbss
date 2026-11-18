@@ -360,6 +360,8 @@ code {
 .wikipedia-article-body .wikipedia-infobox[open] { width: min(100%, 48rem); max-width: none; float: right; }
 .wikipedia-article-body .wikipedia-infobox-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: .85rem; }
 .wikipedia-article-body .wikipedia-infobox-layout.has-media { grid-template-columns: minmax(11rem, .8fr) minmax(0, 1.2fr); }
+.wikipedia-article-body .wikipedia-infobox-layout.has-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.wikipedia-article-body .wikipedia-infobox-layout > .wikipedia-infobox-heading { grid-column: 1 / -1; }
 .wikipedia-article-body .wikipedia-infobox-media { min-width: 0; text-align: center; }
 .wikipedia-article-body .wikipedia-infobox-media img { width: 100%; max-width: 100%; max-height: 26rem; object-fit: contain; }
 .wikipedia-article-body .wikipedia-infobox-media figure { margin: 0; }
@@ -371,10 +373,16 @@ code {
 .wikipedia-article-body .wikipedia-references summary { cursor: pointer; font-weight: 650; }
 .wikipedia-article-body .wikipedia-references ol,
 .wikipedia-article-body .wikipedia-references ul { padding-left: 1.4rem; font-size: .9rem; }
+.wikipedia-article-body .wikipedia-references[open] > ol,
+.wikipedia-article-body .wikipedia-references[open] > ul { columns: 2; column-gap: 2rem; }
+.wikipedia-article-body .wikipedia-references[open] li { break-inside: avoid-column; margin-bottom: .35rem; }
 @media (max-width: 575.98px) {
     .wikipedia-article-body .wikipedia-infobox[open] { float: none; width: 100%; margin: 0 0 1rem; }
-    .wikipedia-article-body .wikipedia-infobox-layout.has-media { grid-template-columns: minmax(0, 1fr); }
+    .wikipedia-article-body .wikipedia-infobox-layout.has-media,
+    .wikipedia-article-body .wikipedia-infobox-layout.has-columns { grid-template-columns: minmax(0, 1fr); }
     .wikipedia-article-body .wikipedia-infobox-media img { max-height: 18rem; }
+    .wikipedia-article-body .wikipedia-references[open] > ol,
+    .wikipedia-article-body .wikipedia-references[open] > ul { columns: 1; }
 }
 .wikipedia-attribution { max-width: 58rem; margin: 1.5rem auto 0; padding-top: .8rem; border-top: 1px solid var(--bs-border-color); }
 

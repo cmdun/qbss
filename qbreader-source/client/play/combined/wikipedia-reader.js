@@ -101,7 +101,8 @@ function initializeWikipediaReader () {
       summary.textContent = 'Article overview';
       const layout = document.createElement('div');
       layout.className = 'wikipedia-infobox-layout';
-      const imageRow = Array.from(table.querySelectorAll('tr')).find(row => row.querySelector('img'));
+      table.before(details);
+      const imageRow = Array.from(table.rows).find(row => row.closest('table') === table && row.querySelector('img'));
       const imageCell = imageRow && Array.from(imageRow.cells).find(cell => cell.querySelector('img'));
       if (imageCell) {
         layout.classList.add('has-media');
@@ -111,8 +112,34 @@ function initializeWikipediaReader () {
         layout.append(media);
         imageRow.remove();
       }
-      table.before(details);
-      layout.append(table);
+      const rows = Array.from(table.rows).filter(row => row.closest('table') === table);
+      if (!imageCell && rows.length > 2) {
+        layout.classList.add('has-columns');
+        const headingRow = rows[0]?.cells.length === 1 ? rows.shift() : null;
+        if (headingRow) {
+          const headingTable = table.cloneNode(false);
+          headingTable.removeAttribute('id');
+          headingTable.removeAttribute('style');
+          const headingBody = document.createElement('tbody');
+          headingBody.append(headingRow.cloneNode(true));
+          headingTable.append(headingBody);
+          headingTable.className = 'wikipedia-infobox-heading';
+          layout.append(headingTable);
+        }
+        const midpoint = Math.ceil(rows.length / 2);
+        for (const columnRows of [rows.slice(0, midpoint), rows.slice(midpoint)]) {
+          if (!columnRows.length) { continue; }
+          const columnTable = table.cloneNode(false);
+          columnTable.removeAttribute('id');
+          columnTable.removeAttribute('style');
+          const columnBody = document.createElement('tbody');
+          columnRows.forEach(row => columnBody.append(row.cloneNode(true)));
+          columnTable.append(columnBody);
+          layout.append(columnTable);
+        }
+        table.remove();
+      }
+      if (table.isConnected) { layout.append(table); }
       details.append(summary, layout);
     }
     for (const heading of container.querySelectorAll('h2, h3')) {
