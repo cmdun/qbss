@@ -357,11 +357,25 @@ code {
 .wikipedia-article-body .wikipedia-contents li { margin: .2rem 0; }
 .wikipedia-article-body .wikipedia-infobox { margin: 0 0 1rem 1rem; padding: .6rem .8rem; border: 1px solid var(--bs-border-color); border-radius: .6rem; background: var(--bs-tertiary-bg); }
 .wikipedia-article-body .wikipedia-infobox summary { color: var(--bs-emphasis-color); cursor: pointer; font-weight: 650; }
-.wikipedia-article-body .wikipedia-infobox[open] { max-width: min(100%, 28rem); float: right; }
+.wikipedia-article-body .wikipedia-infobox[open] { width: min(100%, 48rem); max-width: none; float: right; }
+.wikipedia-article-body .wikipedia-infobox-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: .85rem; }
+.wikipedia-article-body .wikipedia-infobox-layout.has-media { grid-template-columns: minmax(11rem, .8fr) minmax(0, 1.2fr); }
+.wikipedia-article-body .wikipedia-infobox-media { min-width: 0; text-align: center; }
+.wikipedia-article-body .wikipedia-infobox-media img { width: 100%; max-width: 100%; max-height: 26rem; object-fit: contain; }
+.wikipedia-article-body .wikipedia-infobox-media figure { margin: 0; }
+.wikipedia-article-body .wikipedia-infobox-layout > table { display: table; width: 100%; margin: 0; table-layout: auto; }
+.wikipedia-article-body .wikipedia-infobox-layout > table tr { display: table-row; }
+.wikipedia-article-body .wikipedia-infobox-layout > table th,
+.wikipedia-article-body .wikipedia-infobox-layout > table td { display: table-cell; }
 .wikipedia-article-body .wikipedia-references { margin: .75rem 0; padding: .75rem 1rem; border: 1px solid var(--bs-border-color); border-radius: .6rem; background: var(--bs-tertiary-bg); }
 .wikipedia-article-body .wikipedia-references summary { cursor: pointer; font-weight: 650; }
 .wikipedia-article-body .wikipedia-references ol,
 .wikipedia-article-body .wikipedia-references ul { padding-left: 1.4rem; font-size: .9rem; }
+@media (max-width: 575.98px) {
+    .wikipedia-article-body .wikipedia-infobox[open] { float: none; width: 100%; margin: 0 0 1rem; }
+    .wikipedia-article-body .wikipedia-infobox-layout.has-media { grid-template-columns: minmax(0, 1fr); }
+    .wikipedia-article-body .wikipedia-infobox-media img { max-height: 18rem; }
+}
 .wikipedia-attribution { max-width: 58rem; margin: 1.5rem auto 0; padding-top: .8rem; border-top: 1px solid var(--bs-border-color); }
 
 .reader-immersive #reader-stage {

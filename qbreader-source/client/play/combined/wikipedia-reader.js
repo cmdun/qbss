@@ -99,8 +99,21 @@ function initializeWikipediaReader () {
       details.className = 'wikipedia-infobox';
       const summary = document.createElement('summary');
       summary.textContent = 'Article overview';
+      const layout = document.createElement('div');
+      layout.className = 'wikipedia-infobox-layout';
+      const imageRow = Array.from(table.querySelectorAll('tr')).find(row => row.querySelector('img'));
+      const imageCell = imageRow && Array.from(imageRow.cells).find(cell => cell.querySelector('img'));
+      if (imageCell) {
+        layout.classList.add('has-media');
+        const media = document.createElement('div');
+        media.className = 'wikipedia-infobox-media';
+        while (imageCell.firstChild) { media.append(imageCell.firstChild); }
+        layout.append(media);
+        imageRow.remove();
+      }
       table.before(details);
-      details.append(summary, table);
+      layout.append(table);
+      details.append(summary, layout);
     }
     for (const heading of container.querySelectorAll('h2, h3')) {
       if (!/^(references|notes|further reading|external links|bibliography)$/i.test(heading.textContent.trim())) { continue; }
