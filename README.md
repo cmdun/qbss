@@ -24,6 +24,10 @@ To import QBReader statistics, open **Settings → Import QBReader stats** and s
 - **Anki:** Install Anki and the AnkiConnect add-on separately. QBSS can then add cards directly to your collection.
 - **Wikipedia:** The built-in reader searches English Wikipedia when you have an internet connection. Article content follows Wikipedia's attribution and license terms.
 
+## Development disclosure
+
+AI tools were used to help develop and document QBSS. The project maintainer is responsible for the final code, review, and ongoing maintenance.
+
 ## Privacy and content
 
 The software is shared under the [MIT License](LICENSE). QBSS includes adapted QBReader code under its original [MIT License](qbreader-source/LICENSE). See [Third-party notices](THIRD_PARTY_NOTICES.md) for other included software.
