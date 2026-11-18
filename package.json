@@ -18,6 +18,7 @@
   "build": {
     "appId": "org.qbreader.local",
     "productName": "QBSS",
+    "publish": [{ "provider": "github", "owner": "cmdun", "repo": "qbss" }],
     "asar": true,
     "disableDefaultIgnoredFiles": true,
     "directories": {
@@ -38,7 +39,9 @@
       "DATABASE_SETUP.md"
     ],
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "desktop/assets/qbss-icon.ico",
       "artifactName": "QBSS-${version}-windows-${arch}.${ext}"
     },
@@ -49,5 +52,8 @@
       "createStartMenuShortcut": true,
       "shortcutName": "QBSS"
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
   }
 }

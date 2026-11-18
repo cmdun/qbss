@@ -151,9 +151,41 @@ const wikipediaDrawer = document.getElementById('wikipedia-drawer');
 const wikipediaToggle = document.getElementById('toggle-wikipedia');
 const ankiDrawer = document.getElementById('anki-drawer');
 const ankiToggle = document.getElementById('toggle-anki');
+const readerToggle = document.getElementById('toggle-reader');
+const readerContent = document.getElementById('content');
+const swapWorkspaceSides = document.getElementById('swap-workspace-sides');
+swapWorkspaceSides.checked = window.localStorage.getItem('qbss-swap-workspace-sides') === 'true';
+document.body.classList.toggle('workspace-swapped', swapWorkspaceSides.checked);
+swapWorkspaceSides.addEventListener('change', () => {
+  window.localStorage.setItem('qbss-swap-workspace-sides', String(swapWorkspaceSides.checked));
+  document.body.classList.toggle('workspace-swapped', swapWorkspaceSides.checked);
+});
 const ankiReader = initializeAnkiReader();
 const databaseFrame = databaseDrawer.querySelector('iframe');
 initializeWikipediaReader();
+
+function hasOpenPanel () {
+  return ['settings', 'wikipedia', 'database', 'anki'].some(name => document.body.classList.contains(`${name}-drawer-open`));
+}
+function setReaderHidden (hidden) {
+  if (hidden && !hasOpenPanel()) return;
+  if (hidden && !document.body.classList.contains('reader-hidden')) {
+    const pause = document.getElementById('pause');
+    if (!pause.disabled && pause.querySelector('.bi-pause-fill')) pause.click();
+  }
+  document.body.classList.toggle('reader-hidden', hidden);
+  readerContent.inert = hidden;
+  readerContent.setAttribute('aria-hidden', String(hidden));
+  readerToggle.setAttribute('aria-pressed', String(!hidden));
+  readerToggle.classList.toggle('btn-primary', !hidden);
+  readerToggle.classList.toggle('btn-outline-secondary', hidden);
+  readerToggle.title = hidden ? 'Show reader · Shortcut: R' : hasOpenPanel() ? 'Hide reader · Shortcut: R' : 'Open a study panel to hide the reader';
+}
+function syncReaderVisibility () {
+  if (!hasOpenPanel() && document.body.classList.contains('reader-hidden')) setReaderHidden(false);
+  readerToggle.title = document.body.classList.contains('reader-hidden') ? 'Show reader · Shortcut: R' : hasOpenPanel() ? 'Hide reader · Shortcut: R' : 'Open a study panel to hide the reader';
+}
+setReaderHidden(false);
 
 new window.MutationObserver(() => {
   const theme = document.documentElement.getAttribute('data-bs-theme');
@@ -175,6 +207,7 @@ function setDatabaseDrawerOpen (open) {
     settingsDrawer.inert = true;
     settingsToggle.setAttribute('aria-expanded', 'false');
   }
+  syncReaderVisibility();
 }
 
 function setSettingsDrawerOpen (open) {
@@ -193,6 +226,7 @@ function setSettingsDrawerOpen (open) {
     databaseDrawer.inert = true;
     databaseToggle.setAttribute('aria-expanded', 'false');
   }
+  syncReaderVisibility();
 }
 
 function setAnkiDrawerOpen (open) {
@@ -204,6 +238,7 @@ function setAnkiDrawerOpen (open) {
     if (document.body.classList.contains('settings-drawer-open')) { setSettingsDrawerOpen(false); }
     ankiReader.connect();
   }
+  syncReaderVisibility();
 }
 
 function setWikipediaDrawerOpen (open) {
@@ -217,6 +252,7 @@ function setWikipediaDrawerOpen (open) {
     settingsDrawer.inert = true;
     settingsToggle.setAttribute('aria-expanded', 'false');
   }
+  syncReaderVisibility();
 }
 
 settingsToggle.addEventListener('click', () => {
@@ -232,6 +268,7 @@ wikipediaToggle.addEventListener('click', () => {
 ankiToggle.addEventListener('click', () => {
   setAnkiDrawerOpen(!document.body.classList.contains('anki-drawer-open'));
 });
+readerToggle.addEventListener('click', () => setReaderHidden(!document.body.classList.contains('reader-hidden')));
 window.addEventListener('message', event => {
   if (event.origin !== window.location.origin || event.source !== databaseFrame.contentWindow) { return; }
   if (event.data?.type === 'qbreader-toggle-database') {
@@ -253,6 +290,11 @@ if (packetId) {
 }
 
 document.addEventListener('keydown', event => {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f' && document.body.classList.contains('database-drawer-open')) {
+    event.preventDefault();
+    databaseFrame.contentWindow.postMessage({ type: 'qbss-find' }, window.location.origin);
+    return;
+  }
   if (event.key === 'Escape' && (document.body.classList.contains('database-drawer-open') || document.body.classList.contains('settings-drawer-open') || document.body.classList.contains('wikipedia-drawer-open') || document.body.classList.contains('anki-drawer-open'))) {
     if (document.body.classList.contains('database-drawer-open')) { setDatabaseDrawerOpen(false); }
     if (document.body.classList.contains('settings-drawer-open')) { setSettingsDrawerOpen(false); }
@@ -262,6 +304,8 @@ document.addEventListener('keydown', event => {
     return;
   }
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) || document.activeElement.isContentEditable) { return; }
+  if (event.metaKey || event.ctrlKey || event.altKey) { return; }
+  if (document.body.classList.contains('reader-hidden') && [' ', 'n', 's', 'p', 't', 'y', 'k', '0', '1', '2', '3', '4'].includes(event.key.toLowerCase())) return;
   const partKey = event.key === '0' ? String(room.pointsPerPart.length) : event.key;
   if (['0', '1', '2', '3', '4'].includes(event.key) && document.getElementById(`checkbox-${partKey}`)) {
     document.getElementById(`checkbox-${partKey}`).click();
@@ -277,6 +321,7 @@ document.addEventListener('keydown', event => {
     case 'd': databaseToggle.click(); event.preventDefault(); break;
     case 'w': wikipediaToggle.click(); event.preventDefault(); break;
     case 'a': ankiToggle.click(); event.preventDefault(); break;
+    case 'r': setReaderHidden(!document.body.classList.contains('reader-hidden')); event.preventDefault(); break;
     case 't': document.querySelector('#room-history .star-tossup, #room-history .star-bonus')?.click(); event.preventDefault(); break;
     case 'y': {
       const question = room.currentQuestionType === 1 ? room.bonus : room.tossup;

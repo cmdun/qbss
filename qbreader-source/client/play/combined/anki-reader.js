@@ -156,7 +156,13 @@ export default function initializeAnkiReader () {
     } finally { add.disabled = !connected; }
   });
   document.getElementById('anki-drawer').addEventListener('keydown', event => {
-    if (event.key === 'Enter' && event.metaKey && !event.repeat && !event.isComposing) {
+    const modifier = navigator.platform.toUpperCase().includes('MAC') ? event.metaKey : event.ctrlKey;
+    if (modifier && !event.altKey && !event.isComposing && ['b', 'i', 'u'].includes(event.key.toLowerCase()) && event.target.matches('textarea[data-field]')) {
+      event.preventDefault();
+      document.querySelector(`[data-anki-format="${event.key.toLowerCase()}"]`)?.click();
+      return;
+    }
+    if (event.key === 'Enter' && modifier && !event.repeat && !event.isComposing) {
       event.preventDefault();
       if (!add.disabled) { document.getElementById('anki-form').requestSubmit(); }
     }

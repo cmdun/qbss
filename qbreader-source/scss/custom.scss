@@ -950,3 +950,72 @@ a.list-group-item:hover {
     min-height: 90px;
 }
 
+
+::highlight(qbss-find) { background: #f6d88b; color: #1b1b1b; }
+::highlight(qbss-find-current) { background: #ffae42; color: #1b1b1b; }
+.reader-layout-row #content {
+  transition: flex-basis .35s ease, max-width .35s ease, padding .35s ease, opacity .2s ease, transform .35s ease, visibility .35s;
+}
+.anki-drawer-open.database-drawer-open:not(.wikipedia-drawer-open) .reader-layout-row #content { flex: 0 1 50%; }
+.reader-hidden .reader-layout-row #content {
+  flex: 0 1 0 !important; width: 0 !important; max-width: 0 !important;
+  margin-inline: 0 !important; padding-inline: 0 !important; overflow: hidden; opacity: 0;
+  visibility: hidden; transform: none !important;
+}
+.reader-hidden.wikipedia-drawer-open .reader-layout-row .wikipedia-drawer,
+.reader-hidden.database-drawer-open .reader-layout-row .database-drawer,
+.reader-hidden.anki-drawer-open .reader-layout-row .anki-drawer {
+  flex: 1 1 50% !important; width: auto; max-width: 100% !important; transform: none;
+}
+.reader-hidden.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .reader-layout-row .wikipedia-drawer,
+.reader-hidden.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .reader-layout-row .database-drawer,
+.reader-hidden.anki-drawer-open.wikipedia-drawer-open.database-drawer-open .reader-layout-row .anki-drawer { flex-basis: 33.333% !important; }
+.reader-hidden:not(.wikipedia-drawer-open):not(.settings-drawer-open) .reader-layout-row .database-drawer { border-left-color: transparent; }
+.reader-hidden:not(.wikipedia-drawer-open):not(.settings-drawer-open):not(.database-drawer-open) .reader-layout-row .anki-drawer { border-left-color: transparent; }
+.reader-hidden.wikipedia-drawer-open:not(.database-drawer-open):not(.anki-drawer-open) .reader-layout-row .wikipedia-drawer,
+.reader-hidden.settings-drawer-open .reader-layout-row #settings { border-right-color: transparent; }
+.reader-hidden .reader-layout-row #settings[aria-hidden="true"],
+.reader-hidden .reader-layout-row .wikipedia-drawer[aria-hidden="true"],
+.reader-hidden .reader-layout-row .database-drawer[aria-hidden="true"],
+.reader-hidden .reader-layout-row .anki-drawer[aria-hidden="true"] { border-width: 0; }
+
+.reader-hidden #buttons #next, .reader-hidden #buttons #pause,
+.reader-hidden #buttons #reveal, .reader-hidden #buttons #buzz { display: none; }
+.reader-hidden.settings-drawer-open .reader-layout-row #settings {
+  flex: 1 1 0; max-width: none; width: auto;
+}
+/* The reader collapses between Wikipedia and the right panels. Let the
+   neighboring panel draw the divider so the two borders do not add up. */
+.wikipedia-drawer-open.database-drawer-open .reader-layout-row .wikipedia-drawer,
+.wikipedia-drawer-open.anki-drawer-open .reader-layout-row .wikipedia-drawer {
+  border-right-color: transparent;
+}
+.workspace-swapped .reader-layout-row { flex-direction: row-reverse; }
+.workspace-swapped .reader-layout-row #settings,
+.workspace-swapped .reader-layout-row .wikipedia-drawer { border-right: 0; border-left: 1px solid transparent; }
+.workspace-swapped.settings-drawer-open .reader-layout-row #settings,
+.workspace-swapped.wikipedia-drawer-open .reader-layout-row .wikipedia-drawer { border-left-color: var(--bs-border-color); }
+.workspace-swapped.wikipedia-drawer-open.database-drawer-open .reader-layout-row .wikipedia-drawer,
+.workspace-swapped.wikipedia-drawer-open.anki-drawer-open .reader-layout-row .wikipedia-drawer { border-left-color: transparent; }
+.workspace-swapped .reader-layout-row .database-drawer,
+.workspace-swapped .reader-layout-row .anki-drawer { border-left: 0; border-right: 1px solid transparent; }
+.workspace-swapped.database-drawer-open .reader-layout-row .database-drawer,
+.workspace-swapped.anki-drawer-open .reader-layout-row .anki-drawer { border-right-color: var(--bs-border-color); }
+.workspace-swapped.reader-hidden.wikipedia-drawer-open:not(.database-drawer-open):not(.anki-drawer-open) .reader-layout-row .wikipedia-drawer,
+.workspace-swapped.reader-hidden.settings-drawer-open .reader-layout-row #settings { border-left-color: transparent; }
+.workspace-swapped.reader-hidden:not(.wikipedia-drawer-open):not(.settings-drawer-open) .reader-layout-row .database-drawer { border-right-color: transparent; }
+.workspace-swapped.reader-hidden:not(.wikipedia-drawer-open):not(.settings-drawer-open):not(.database-drawer-open) .reader-layout-row .anki-drawer { border-right-color: transparent; }
+.workspace-swapped:not(.settings-drawer-open) .reader-layout-row #settings,
+.workspace-swapped:not(.wikipedia-drawer-open) .reader-layout-row .wikipedia-drawer { transform: translateX(1.5rem); }
+.workspace-swapped:not(.database-drawer-open) .reader-layout-row .database-drawer,
+.workspace-swapped:not(.anki-drawer-open) .reader-layout-row .anki-drawer { transform: translateX(-1.5rem); }
+@media (max-width: 575.98px) {
+  .workspace-swapped .reader-layout-row #settings,
+  .workspace-swapped .reader-layout-row .wikipedia-drawer { left: auto; right: 0; }
+  .workspace-swapped .reader-layout-row .database-drawer { right: auto; left: 0; }
+  .reader-hidden.settings-drawer-open .reader-layout-row #settings,
+  .reader-hidden.wikipedia-drawer-open .reader-layout-row .wikipedia-drawer,
+  .reader-hidden.database-drawer-open .reader-layout-row .database-drawer {
+    position: static; width: auto; flex: 1 1 0; max-width: none;
+  }
+}

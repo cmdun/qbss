@@ -52,6 +52,60 @@ let mainWindow;
 let localServer;
 let isShuttingDown = false;
 
+async function checkForUpdates () {
+  if (!app.isPackaged) return;
+  if (process.platform === 'darwin') {
+    try {
+      const response = await fetch('https://api.github.com/repos/cmdun/qbss/releases?per_page=30', {
+        headers: { 'User-Agent': 'QBSS', Accept: 'application/vnd.github+json' },
+        signal: AbortSignal.timeout(10000)
+      });
+      if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
+      const releases = await response.json();
+      const parse = value => {
+        const match = /^v?(\d+)\.(\d+)\.(\d+)(?:-preview\.(\d+))?$/.exec(value);
+        return match && [+match[1], +match[2], +match[3], match[4] === undefined ? Infinity : +match[4]];
+      };
+      const current = parse(app.getVersion());
+      if (!current) return;
+      const newer = version => {
+        const candidate = parse(version);
+        if (!candidate) return false;
+        for (let index = 0; index < current.length; index++) {
+          if (candidate[index] !== current[index]) return candidate[index] > current[index];
+        }
+        return false;
+      };
+      const release = releases.find(item => !item.draft && (!item.prerelease || app.getVersion().includes('-preview.')) && newer(item.tag_name) && item.html_url?.startsWith('https://github.com/cmdun/qbss/releases/tag/'));
+      if (!release) return;
+      const result = await dialog.showMessageBox(mainWindow, {
+        type: 'info', title: 'QBSS update available',
+        message: `QBSS ${release.tag_name.replace(/^v/, '')} is available.`,
+        detail: 'Download the new Mac installer from the release page.',
+        buttons: ['Open download', 'Later'], defaultId: 0, cancelId: 1
+      });
+      if (result.response === 0) await shell.openExternal(release.html_url);
+    } catch (error) { console.error('Update check failed:', error.message); }
+    return;
+  }
+  if (process.platform !== 'win32') return;
+  const { default: updater } = await import('electron-updater');
+  const { autoUpdater } = updater;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.on('error', error => console.error('Update check failed:', error.message));
+  autoUpdater.on('update-downloaded', async info => {
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: 'info', title: 'QBSS update ready',
+      message: `QBSS ${info.version} is ready to install.`,
+      detail: 'Restart now to install the update, or install it when you quit QBSS.',
+      buttons: ['Restart and update', 'Later'], defaultId: 0, cancelId: 1
+    });
+    if (result.response === 0) autoUpdater.quitAndInstall();
+  });
+  autoUpdater.checkForUpdates().catch(error => console.error('Update check failed:', error.message));
+}
+
 function runDatabaseImport (backup, output, onProgress = () => {}) {
   return new Promise((resolve, reject) => {
     const workerPath = path.join(app.getAppPath(), 'desktop', 'database-import-worker.cjs');
@@ -276,6 +330,7 @@ app.whenReady().then(async () => {
     const { startLocalServer } = await import('../local/server.js');
     localServer = await startLocalServer();
     createWindow();
+    checkForUpdates().catch(error => console.error('Update initialization failed:', error.message));
   } catch (error) {
     const message = error.code === 'EADDRINUSE'
       ? 'Port 4173 is already in use. Quit the existing QBSS server, then open the app again.'

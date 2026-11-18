@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -23,8 +23,11 @@ const installers = readdirSync(OUTPUT).filter((name) => name.endsWith('.exe'));
 if (installers.length !== 1) {
   throw new Error(`Expected one Windows installer in ${OUTPUT}, found ${installers.length}.`);
 }
+if (!readdirSync(OUTPUT).some(name => name.endsWith('.yml')) || !existsSync(path.join(OUTPUT, 'win-unpacked', 'resources', 'app-update.yml'))) {
+  throw new Error('The installer is missing update metadata or its embedded update configuration.');
+}
 for (const name of readdirSync(OUTPUT)) {
-  if (name !== installers[0]) rmSync(path.join(OUTPUT, name), { recursive: true, force: true });
+  if (name !== installers[0] && !name.endsWith('.yml') && !name.endsWith('.blockmap')) rmSync(path.join(OUTPUT, name), { recursive: true, force: true });
 }
 
 console.log(`Created ${path.join(OUTPUT, installers[0])}`);

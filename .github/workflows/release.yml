@@ -25,7 +25,10 @@ jobs:
           - platform: Windows x64
             runner: windows-latest
             command: package:win
-            artifact: release/windows/*.exe
+            artifact: |
+              release/windows/*.exe
+              release/windows/*.yml
+              release/windows/*.blockmap
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out QBSS
@@ -42,6 +45,12 @@ jobs:
       - name: Install QBReader client dependencies
         run: npm ci
         working-directory: qbreader-source
+
+      - name: Set release version
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: npm version "${RELEASE_TAG#v}" --no-git-tag-version
 
       - name: Build installer
         run: npm run ${{ matrix.command }}
@@ -74,11 +83,13 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           cat > release-notes.md <<'EOF'
-          QBSS 1.0.0 installation preview.
+          QBSS installation preview.
 
           Includes a macOS Apple silicon DMG and a Windows x64 Setup.exe. These installers do not include a question database or personal study data; set up a database separately after installing.
 
           The installers are unsigned and may show an operating-system security notice. Please report any installation issues before the final 1.0.0 release.
+
+          This preview adds update checks. Windows can download and install future updates; on macOS, QBSS opens the release page so you can download the new DMG. The update flow still needs a release-to-release check on Windows.
           EOF
           gh release create "$RELEASE_TAG" release-files/* \
             --title "QBSS ${RELEASE_TAG#v}" \

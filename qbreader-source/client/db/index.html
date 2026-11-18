@@ -8,6 +8,11 @@
 </head>
 
 <body>
+    <div id="database-find" hidden style="position:sticky;top:0;z-index:1100;padding:.5rem;background:var(--bs-body-bg)">
+        <div class="input-group"><input id="database-find-input" class="form-control" type="search" placeholder="Find on page" aria-label="Find on page"><button id="database-find-previous" class="btn btn-outline-secondary" type="button" aria-label="Previous match">↑</button><button id="database-find-next" class="btn btn-outline-secondary" type="button" aria-label="Next match">↓</button><button id="database-find-close" class="btn btn-outline-secondary" type="button" aria-label="Close find">×</button></div>
+        <span id="database-find-status" class="small" role="status"></span>
+    </div>
+    <script src="/db/find.js" defer></script>
     <!--#include virtual="/ssi/nav.html" -->
 
     <div class="container-xl mt-3 mb-4">

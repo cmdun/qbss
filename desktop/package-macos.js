@@ -9,8 +9,9 @@ const ICON_SOURCE = path.join(ROOT, 'qbreader-source', 'client', 'qbss-icon.svg'
 const ICONSET = path.join(ROOT, 'desktop', 'assets', 'qbreader.iconset');
 const ICON_PATH = path.join(ROOT, 'desktop', 'assets', 'qbreader.icns');
 const OUTPUT = path.join(ROOT, 'release', 'macos');
-const DMG_PATH = path.join(OUTPUT, `QBSS-1.0.0-macos-${process.arch}.dmg`);
 const ELECTRON_VERSION = JSON.parse(readFileSync(path.join(ROOT, 'node_modules', 'electron', 'package.json'), 'utf8')).version;
+const APP_VERSION = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
+const DMG_PATH = path.join(OUTPUT, `QBSS-${APP_VERSION}-macos-${process.arch}.dmg`);
 const APP_NAME = 'QBSS';
 const swiftModuleCache = '/private/tmp/local-qbreader-swift-cache';
 const iconChunks = [
@@ -58,7 +59,7 @@ const apps = await packager({
   // Keep the installed app's stable identifier so macOS treats QBSS as an
   // upgrade to the user's existing Local QBReader app.
   appBundleId: 'org.qbreader.local',
-  appVersion: '1.0.0',
+  appVersion: APP_VERSION,
   appCategoryType: 'public.app-category.education',
   ignore: [
     /^\/node_modules(?:\/|$)/,
@@ -91,7 +92,7 @@ try {
   copyFileSync(path.join(ROOT, 'THIRD_PARTY_NOTICES.md'), path.join(dmgContents, 'Third-party notices.txt'));
   execFileSync('ditto', [appBundle, path.join(dmgContents, `${APP_NAME}.app`)]);
   rmSync(DMG_PATH, { force: true });
-  execFileSync('hdiutil', ['create', '-volname', 'QBSS 1.0.0', '-srcfolder', dmgContents, '-ov', '-format', 'UDZO', DMG_PATH], { stdio: 'inherit' });
+  execFileSync('hdiutil', ['create', '-volname', `QBSS ${APP_VERSION}`, '-srcfolder', dmgContents, '-ov', '-format', 'UDZO', DMG_PATH], { stdio: 'inherit' });
 } finally {
   rmSync(dmgContents, { recursive: true, force: true });
 }

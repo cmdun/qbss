@@ -137,6 +137,10 @@
                         <label class="form-check-label" for="toggle-login-required">Require new players to be logged in</label>
                     </div>
                     <div class="mb-2"></div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" id="swap-workspace-sides" type="checkbox" role="switch">
+                        <label class="form-check-label" for="swap-workspace-sides">Swap left and right</label>
+                    </div>
                     <label for="reading-speed">Reading speed: <span id="reading-speed-display">50</span><br></label>
                     <input class="form-range" id="reading-speed" type="range" min="0" max="100" step="5">
                     <div>
@@ -275,6 +279,7 @@
                 <button class="btn btn-primary reader-database-toggle" id="toggle-anki" data-bs-placement="top" data-bs-toggle="tooltip" type="button" aria-label="Add an Anki card" aria-controls="anki-drawer" aria-expanded="false" title="Add Anki card · Shortcut: a">
                     <i class="bi bi-card-text" aria-hidden="true"></i>
                 </button>
+                <button class="btn btn-primary" id="toggle-reader" type="button" aria-controls="content" aria-pressed="true" title="Hide reader · Shortcut: R">Reader</button>
                 <button class="btn btn-primary float-end" id="reveal" data-bs-placement="top" data-bs-toggle="tooltip" type="button"
                     title="Shortcut: spacebar" disabled>Reveal</button>
                 <button class="btn btn-primary float-end me-1" id="buzz" data-bs-placement="top" data-bs-toggle="tooltip" type="button"

@@ -30,15 +30,7 @@ const getPreferredTheme = () => {
 };
 
 const setTheme = theme => {
-  const htmlTag = document.documentElement;
-  if (theme === 'custom' && window.qbTheme.applyStored()) { return; }
-  if (theme === 'custom') { theme = 'auto'; }
-  window.qbTheme.clear();
-  if (theme === 'auto') {
-    htmlTag.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'light'));
-  } else {
-    htmlTag.setAttribute('data-bs-theme', theme);
-  }
+  window.qbTheme.applySelection(theme === 'dark' ? 'night' : theme);
 };
 
 setTheme(getPreferredTheme());
