@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell, utilityProcess } from 'electron';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { validateBackupFolder } from '../local/import-backup.js';
@@ -6,6 +6,8 @@ import { validateBackupFolder } from '../local/import-backup.js';
 const APP_URL = 'http://127.0.0.1:4173/';
 
 app.setName('QBSS');
+// Keep Chromium's prefers-color-scheme query tied to Windows/macOS system mode.
+nativeTheme.themeSource = 'system';
 // Move forward from the legacy Local QBReader data folder while preserving
 // existing preferences, database selection, stars, and practice history.
 const appDataDirectory = app.getPath('appData');

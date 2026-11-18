@@ -35,5 +35,19 @@
     return true;
   }
   function stored () { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; } }
-  window.qbTheme = { key, roleMap, apply, clear, stored, hasStored: () => Boolean(stored()), applyStored: () => apply(stored()) };
+  function systemTheme () {
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'night' : 'light';
+  }
+  function applySelection (selected = localStorage.getItem('color-theme') || 'auto') {
+    const selection = ['auto', 'light', 'night', 'custom'].includes(selected) ? selected : 'auto';
+    if (selection === 'custom' && apply(stored())) { return; }
+    clear();
+    root.setAttribute('data-bs-theme', ['light', 'night'].includes(selection) ? selection : systemTheme());
+  }
+  window.qbTheme = { key, roleMap, apply, clear, stored, hasStored: () => Boolean(stored()), applyStored: () => apply(stored()), systemTheme, applySelection };
+  applySelection();
+  const systemPreference = window.matchMedia?.('(prefers-color-scheme: dark)');
+  systemPreference?.addEventListener?.('change', () => {
+    if ((localStorage.getItem('color-theme') || 'auto') === 'auto') { applySelection(); }
+  });
 })();

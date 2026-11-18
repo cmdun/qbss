@@ -71,8 +71,7 @@ function selectTheme (value) {
   } else { preview = null; }
   showEditor();
   if (preview) { manager.apply(preview); } else {
-    manager.clear();
-    document.documentElement.setAttribute('data-bs-theme', value === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'light') : value === 'custom' ? 'light' : value);
+    manager.applySelection(value);
   }
 }
 
