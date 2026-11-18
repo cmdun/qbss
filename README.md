@@ -2,6 +2,8 @@
 
 QBSS is a desktop app for practicing quiz bowl questions, exploring topics in Wikipedia, and making Anki cards. It runs locally on your computer. It is an independent project based in part on [QBReader](https://github.com/qbreader/website), not the official QBReader service.
 
+> I used AI tools to help develop and document QBSS. I am responsible for the final project and its ongoing maintenance.
+
 ## Install
 
 Prebuilt installers are published on the [QBSS Releases page](https://github.com/cmdun/qbss/releases) as platform builds become available. Use the installer listed for your computer:
@@ -23,10 +25,6 @@ To import QBReader statistics, open **Settings → Import QBReader stats** and s
 
 - **Anki:** Install Anki and the AnkiConnect add-on separately. QBSS can then add cards directly to your collection.
 - **Wikipedia:** The built-in reader searches English Wikipedia when you have an internet connection. Article content follows Wikipedia's attribution and license terms.
-
-## Development disclosure
-
-AI tools were used to help develop and document QBSS. The project maintainer is responsible for the final code, review, and ongoing maintenance.
 
 ## Privacy and content
 
