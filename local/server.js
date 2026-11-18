@@ -164,7 +164,7 @@ app.get('/api/wikipedia/article', async (req, res) => {
 app.get('/api/wikipedia/image', async (req, res) => {
   let imageUrl;
   try { imageUrl = new URL(String(req.query.url || '')); } catch { return res.sendStatus(400); }
-  if (imageUrl.protocol !== 'https:' || !['upload.wikimedia.org', 'commons.wikimedia.org'].includes(imageUrl.hostname)) { return res.sendStatus(400); }
+  if (imageUrl.protocol !== 'https:' || !['upload.wikimedia.org', 'commons.wikimedia.org', 'thumb.wikimedia.org'].includes(imageUrl.hostname)) { return res.sendStatus(400); }
   try {
     const response = await fetch(imageUrl, {
       headers: { Accept: 'image/avif,image/webp,image/*', 'User-Agent': WIKIMEDIA_USER_AGENT },

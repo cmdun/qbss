@@ -38,17 +38,21 @@ async function * documents (filename) {
   }
 }
 
-async function countJson (filename) {
+async function countJson (filename, onProgress = () => {}) {
   let count = 0;
-  for await (const _doc of documents(filename)) count++;
+  for await (const _doc of documents(filename)) {
+    count++;
+    if (count % 10000 === 0) onProgress(`${path.basename(filename)}: checked ${count.toLocaleString()} records`);
+  }
   return count;
 }
 
-async function countBson (filename) {
+async function countBson (filename, onProgress = () => {}) {
   const file = await open(filename, 'r');
   const { size } = await file.stat();
   let offset = 0;
   let count = 0;
+  let lastProgressAt = 0;
   const header = Buffer.alloc(4);
   try {
     while (offset < size) {
@@ -58,6 +62,10 @@ async function countBson (filename) {
       if (length < 5 || offset + length > size) throw new Error(`Invalid BSON document in ${path.basename(filename)}.`);
       offset += length;
       count++;
+      if (offset - lastProgressAt >= 32 * 1024 * 1024) {
+        lastProgressAt = offset;
+        onProgress(`${path.basename(filename)}: checked ${Math.round((offset / Math.max(size, 1)) * 100)}%`);
+      }
     }
   } finally { await file.close(); }
   return count;
@@ -120,10 +128,14 @@ export async function importBackup (folder, outputPath, onProgress = () => {}) {
   // to discard before starting a fresh conversion.
   await rm(staging, { force: true });
   onProgress('Checking the backup files…');
+  const verifiedCounts = {};
   for (const collection of COLLECTIONS) {
-    const jsonCount = await countJson(path.join(backup, `${collection}.json`));
-    const bsonCount = await countBson(path.join(backup, `${collection}.bson`));
+    onProgress(`Checking ${collection}.json…`);
+    const jsonCount = await countJson(path.join(backup, `${collection}.json`), onProgress);
+    onProgress(`Checking ${collection}.bson…`);
+    const bsonCount = await countBson(path.join(backup, `${collection}.bson`), onProgress);
     if (jsonCount !== bsonCount) throw new Error(`${collection} count mismatch: the JSON and BSON files contain different numbers of records.`);
+    verifiedCounts[collection] = jsonCount;
     onProgress(`Verified ${collection}: ${jsonCount.toLocaleString()} records`);
   }
 
@@ -134,29 +146,49 @@ export async function importBackup (folder, outputPath, onProgress = () => {}) {
     createSchema(db);
     const statements = insertStatements(db);
     db.exec('BEGIN');
-    for await (const doc of documents(path.join(backup, 'sets.json'))) statements.sets.run(doc._id, doc.name || '', doc.year ?? null, doc.difficulty ?? null, doc.standard ? 1 : 0, json(doc));
-    for await (const doc of documents(path.join(backup, 'packets.json'))) {
-      const questionSet = doc.set || {};
-      statements.packets.run(doc._id, doc.name || '', questionSet._id ?? null, questionSet.name || '', doc.number ?? 0, json(doc));
+    for (const collection of ['sets', 'packets']) {
+      onProgress(`Importing ${collection}…`);
+      let imported = 0;
+      for await (const doc of documents(path.join(backup, `${collection}.json`))) {
+        if (collection === 'sets') {
+          statements.sets.run(doc._id, doc.name || '', doc.year ?? null, doc.difficulty ?? null, doc.standard ? 1 : 0, json(doc));
+        } else {
+          const questionSet = doc.set || {};
+          statements.packets.run(doc._id, doc.name || '', questionSet._id ?? null, questionSet.name || '', doc.number ?? 0, json(doc));
+        }
+        imported++;
+        if (imported % 10000 === 0) onProgress(`Importing ${collection}: ${imported.toLocaleString()} of ${verifiedCounts[collection].toLocaleString()}`);
+      }
+      onProgress(`Imported ${collection}: ${imported.toLocaleString()} records`);
     }
     for (const collection of ['tossups', 'bonuses']) {
       onProgress(`Importing ${collection}…`);
-      for await (const doc of documents(path.join(backup, `${collection}.json`))) addQuestion(statements, collection, doc);
+      let imported = 0;
+      for await (const doc of documents(path.join(backup, `${collection}.json`))) {
+        addQuestion(statements, collection, doc);
+        imported++;
+        if (imported % 10000 === 0) onProgress(`Importing ${collection}: ${imported.toLocaleString()} of ${verifiedCounts[collection].toLocaleString()}`);
+      }
+      onProgress(`Imported ${collection}: ${imported.toLocaleString()} records`);
     }
     db.exec('COMMIT');
-    onProgress('Building search index…');
-    db.exec(`
-      CREATE UNIQUE INDEX sets_year_name ON sets(year DESC, name ASC);
-      CREATE INDEX packets_set_id ON packets(set_id);
-      CREATE UNIQUE INDEX packets_set_name_number ON packets(set_name, number);
-      CREATE INDEX tossups_search_filters ON tossups(difficulty, category, subcategory, alternate_subcategory, set_year);
-      CREATE UNIQUE INDEX tossups_packet_number ON tossups(packet_id, number);
-      CREATE INDEX tossups_play_order ON tossups(set_name COLLATE BINARY DESC, packet_number, number);
-      CREATE INDEX bonuses_search_filters ON bonuses(difficulty, category, subcategory, alternate_subcategory, set_year);
-      CREATE UNIQUE INDEX bonuses_packet_number ON bonuses(packet_id, number);
-      CREATE INDEX bonuses_play_order ON bonuses(set_name COLLATE BINARY DESC, packet_number, number);
-      ANALYZE;
-    `);
+    const indexes = [
+      ['sets', 'CREATE UNIQUE INDEX sets_year_name ON sets(year DESC, name ASC)'],
+      ['packets', 'CREATE INDEX packets_set_id ON packets(set_id)'],
+      ['packets', 'CREATE UNIQUE INDEX packets_set_name_number ON packets(set_name, number)'],
+      ['tossup search', 'CREATE INDEX tossups_search_filters ON tossups(difficulty, category, subcategory, alternate_subcategory, set_year)'],
+      ['tossup order', 'CREATE UNIQUE INDEX tossups_packet_number ON tossups(packet_id, number)'],
+      ['tossup order', 'CREATE INDEX tossups_play_order ON tossups(set_name COLLATE BINARY DESC, packet_number, number)'],
+      ['bonus search', 'CREATE INDEX bonuses_search_filters ON bonuses(difficulty, category, subcategory, alternate_subcategory, set_year)'],
+      ['bonus order', 'CREATE UNIQUE INDEX bonuses_packet_number ON bonuses(packet_id, number)'],
+      ['bonus order', 'CREATE INDEX bonuses_play_order ON bonuses(set_name COLLATE BINARY DESC, packet_number, number)']
+    ];
+    for (let index = 0; index < indexes.length; index++) {
+      onProgress(`Building ${indexes[index][0]} index (${index + 1} of ${indexes.length})…`);
+      db.exec(indexes[index][1]);
+    }
+    onProgress('Analyzing database…');
+    db.exec('ANALYZE');
     const counts = Object.fromEntries(COLLECTIONS.map(collection => [collection, db.prepare(`SELECT count(*) AS n FROM ${collection}`).get().n]));
     db.close();
     await rm(output, { force: true });

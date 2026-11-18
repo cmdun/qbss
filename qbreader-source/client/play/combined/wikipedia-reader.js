@@ -94,14 +94,24 @@ function initializeWikipediaReader () {
   }
 
   function prepareDenseSections (container) {
-    for (const table of container.querySelectorAll('table.infobox, table.sidebar, .infobox table')) {
+    // A single Wikipedia infobox can contain nested tables. Wrapping one of
+    // those inner tables in <details> creates invalid table markup, which the
+    // browser repairs by moving the table outside the disclosure. Process
+    // only the outermost table for each infobox.
+    const infoboxTables = Array.from(container.querySelectorAll('table.infobox, table.sidebar, .infobox table'))
+      .filter(table => !table.parentElement.closest('table'));
+    for (const table of infoboxTables) {
       const details = document.createElement('details');
       details.className = 'wikipedia-infobox';
       const summary = document.createElement('summary');
       summary.textContent = 'Article overview';
       const layout = document.createElement('div');
       layout.className = 'wikipedia-infobox-layout';
-      table.before(details);
+      // Replace the table first, then move it into the disclosure. This keeps
+      // the entire infobox (including its data rows) under one valid parent.
+      details.append(summary, layout);
+      table.replaceWith(details);
+      layout.append(table);
       const imageRow = Array.from(table.rows).find(row => row.closest('table') === table && row.querySelector('img'));
       const imageCell = imageRow && Array.from(imageRow.cells).find(cell => cell.querySelector('img'));
       if (imageCell) {
@@ -139,8 +149,6 @@ function initializeWikipediaReader () {
         }
         table.remove();
       }
-      if (table.isConnected) { layout.append(table); }
-      details.append(summary, layout);
     }
     for (const heading of container.querySelectorAll('h2, h3')) {
       if (!/^(references|notes|further reading|external links|bibliography)$/i.test(heading.textContent.trim())) { continue; }
@@ -163,7 +171,7 @@ function initializeWikipediaReader () {
   async function prepareImages (container) {
     for (const image of container.querySelectorAll('img')) {
       const source = new URL(image.getAttribute('src') || '', 'https://en.wikipedia.org');
-      if (!['upload.wikimedia.org', 'commons.wikimedia.org'].includes(source.hostname)) { image.remove(); continue; }
+      if (!['upload.wikimedia.org', 'commons.wikimedia.org', 'thumb.wikimedia.org'].includes(source.hostname)) { image.remove(); continue; }
       const originalUrl = source.href;
       const key = await imageCacheKey(originalUrl);
       const cachedPath = `/api/wikipedia/image-cache/${key}`;

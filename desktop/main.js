@@ -1,13 +1,27 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { importBackup, validateBackupFolder } from '../local/import-backup.js';
+import { validateBackupFolder } from '../local/import-backup.js';
 
 const APP_URL = 'http://127.0.0.1:4173/';
 
 app.setName('QBSS');
-// Keep existing preferences and browser data when upgrading from Local QBReader.
-app.setPath('userData', path.join(app.getPath('appData'), 'Local QBReader'));
+// Move forward from the legacy Local QBReader data folder while preserving
+// existing preferences, database selection, stars, and practice history.
+const appDataDirectory = app.getPath('appData');
+const legacyUserDataDirectory = path.join(appDataDirectory, 'Local QBReader');
+const qbssUserDataDirectory = path.join(appDataDirectory, 'QBSS');
+let userDataDirectory = qbssUserDataDirectory;
+if (!existsSync(qbssUserDataDirectory) && existsSync(legacyUserDataDirectory)) {
+  try {
+    renameSync(legacyUserDataDirectory, qbssUserDataDirectory);
+  } catch {
+    // If the OS prevents the same-volume rename, keep using the existing
+    // directory instead of duplicating a potentially large question database.
+    userDataDirectory = legacyUserDataDirectory;
+  }
+}
+app.setPath('userData', userDataDirectory);
 Menu.setApplicationMenu(Menu.buildFromTemplate([
   {
     label: 'QBSS',
@@ -35,6 +49,79 @@ Menu.setApplicationMenu(Menu.buildFromTemplate([
 let mainWindow;
 let localServer;
 let isShuttingDown = false;
+
+function runDatabaseImport (backup, output, onProgress = () => {}) {
+  return new Promise((resolve, reject) => {
+    const workerPath = path.join(app.getAppPath(), 'desktop', 'database-import-worker.cjs');
+    let settled = false;
+    const worker = utilityProcess.fork(workerPath, [backup, output], {
+      serviceName: 'QBSS database setup',
+      stdio: 'ignore'
+    });
+    worker.on('message', (_event, message) => {
+      if (message?.type === 'progress') onProgress(message.message);
+      if (message?.type === 'complete' && !settled) {
+        settled = true;
+        resolve(message.result);
+      }
+      if (message?.type === 'error' && !settled) {
+        settled = true;
+        reject(new Error(message.message));
+      }
+    });
+    worker.on('error', (error) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    });
+    worker.on('exit', (code) => {
+      if (settled) return;
+      settled = true;
+      reject(new Error(`The database setup process stopped unexpectedly${code ? ` (exit code ${code})` : ''}.`));
+    });
+  });
+}
+
+function createDatabaseProgressWindow () {
+  let currentMessage = 'Preparing the question database…';
+  let pageReady = false;
+  const progressWindow = new BrowserWindow({
+    parent: mainWindow || undefined,
+    modal: Boolean(mainWindow),
+    width: 540,
+    height: 250,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    show: false,
+    title: 'Setting up QBSS database',
+    backgroundColor: '#222222',
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
+  });
+  const page = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Setting up QBSS</title><style>
+    :root{color-scheme:dark;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#222;color:#eee}
+    body{margin:0;padding:28px 32px}.title{font-size:21px;font-weight:650;margin:0 0 8px}.description{color:#aab2b9;margin:0 0 22px;line-height:1.45}
+    .track{height:8px;border-radius:10px;background:#3b4147;overflow:hidden}.bar{height:100%;width:38%;border-radius:10px;background:#3f6790;animation:move 1.5s ease-in-out infinite alternate}
+    @keyframes move{from{transform:translateX(-15%)}to{transform:translateX(175%)}}
+    #status{margin-top:15px;min-height:42px;line-height:1.4;color:#d7dce0;overflow-wrap:anywhere}.foot{font-size:12px;color:#8b949b;margin-top:7px}
+  </style></head><body><h1 class="title">Setting up your question database</h1><p class="description">QBSS is converting the backup into a searchable local database. Larger backups can take several minutes.</p><div class="track" aria-hidden="true"><div class="bar"></div></div><div id="status" role="status" aria-live="polite">Preparing the question database…</div><div class="foot">You can keep this window open while setup runs.</div></body></html>`;
+  progressWindow.webContents.once('did-finish-load', () => {
+    pageReady = true;
+    setMessage(currentMessage);
+    progressWindow.show();
+  });
+  progressWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(page)}`);
+
+  function setMessage (message) {
+    currentMessage = String(message || 'Preparing the question database…');
+    if (!pageReady || progressWindow.isDestroyed()) return;
+    progressWindow.webContents.executeJavaScript(
+      `document.getElementById('status').textContent = ${JSON.stringify(currentMessage)}`
+    ).catch(() => {});
+  }
+
+  return { window: progressWindow, setMessage };
+}
 
 function applyPendingDatabase (directory) {
   const pending = path.join(directory, 'questions.sqlite.pending');
@@ -98,7 +185,12 @@ async function getDataDirectory () {
     throw new Error(`That folder is not a complete QBReader backup and does not contain questions.sqlite. ${error.message}`);
   }
   const dataDirectory = path.join(app.getPath('userData'), 'QBSS-data');
-  await importBackup(selected, path.join(dataDirectory, 'questions.sqlite'));
+  const progress = createDatabaseProgressWindow();
+  try {
+    await runDatabaseImport(selected, path.join(dataDirectory, 'questions.sqlite'), progress.setMessage);
+  } finally {
+    if (!progress.window.isDestroyed()) progress.window.close();
+  }
   return saveDataDirectory(dataDirectory);
 }
 
@@ -148,13 +240,17 @@ ipcMain.handle('qbss:import-database-backup', async (event) => {
   if (selection.canceled || !selection.filePaths[0]) return { canceled: true };
   const directory = process.env.QB_READER_DATA_DIR;
   const pending = path.join(directory, 'questions.sqlite.pending');
+  const progress = createDatabaseProgressWindow();
   try {
-    const result = await importBackup(selection.filePaths[0], pending, (message) => {
+    const result = await runDatabaseImport(selection.filePaths[0], pending, (message) => {
+      progress.setMessage(message);
       if (!event.sender.isDestroyed()) event.sender.send('qbss:database-import-progress', message);
     });
     return { ready: true, counts: result.counts };
   } catch (error) {
     return { error: error.message };
+  } finally {
+    if (!progress.window.isDestroyed()) progress.window.close();
   }
 });
 

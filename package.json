@@ -27,6 +27,7 @@
       "desktop/**/*",
       "local/**/*",
       "qbreader-source/client/**/*",
+      "qbreader-source/ssi/**/*",
       "qbreader-source/shared/**/*",
       "qbreader-source/node_modules/**/*",
       "qbreader-source/LICENSE",
