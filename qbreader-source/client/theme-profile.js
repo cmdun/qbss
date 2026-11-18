@@ -1,6 +1,10 @@
 (function () {
   const key = 'qbreader-theme-profile-v1';
   const roleMap = { background: 'base00', panel: 'base01', selection: 'base02', border: 'base03', muted: 'base04', text: 'base05', strong: 'base07', danger: 'base08', warning: 'base09', highlight: 'base0A', success: 'base0B', info: 'base0C', accent: 'base0D', purple: 'base0E', brown: 'base0F' };
+  const presets = {
+    nord: { name: 'Nord', palette: ['2e3440', '3b4252', '434c5e', '4c566a', 'd8dee9', 'e5e9f0', 'eceff4', 'ffffff', 'bf616a', 'd08770', 'ebcb8b', 'a3be8c', '88c0d0', '81a1c1', 'b48ead', '8fbcbb'] },
+    solarized: { name: 'Solarized Light', palette: ['fdf6e3', 'eee8d5', 'e8e0cc', '93a1a1', '657b83', '586e75', '073642', '002b36', 'dc322f', 'cb4b16', 'b58900', '859900', '2aa198', '268bd2', '6c71c4', 'd33682'] }
+  };
   const props = [];
   const root = document.documentElement;
   const validColor = value => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
@@ -35,16 +39,29 @@
     return true;
   }
   function stored () { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; } }
+  function createPreset (id) {
+    const selected = presets[id];
+    if (!selected) { return null; }
+    return { version: 1, name: selected.name, palette: Object.fromEntries(selected.palette.map((color, index) => [`base${index.toString(16).toUpperCase().padStart(2, '0')}`, `#${color}`])), roles: {} };
+  }
   function systemTheme () {
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'night' : 'light';
   }
   function applySelection (selected = localStorage.getItem('color-theme') || 'auto') {
-    const selection = ['auto', 'light', 'night', 'custom'].includes(selected) ? selected : 'auto';
+    const selection = ['auto', 'light', 'night', 'custom', ...Object.keys(presets)].includes(selected) ? selected : 'auto';
+    if (presets[selection] && apply(createPreset(selection))) { return; }
     if (selection === 'custom' && apply(stored())) { return; }
+    // Older versions stored built-in palettes as "custom" profiles. If one
+    // cannot be read, recover the named preset from the stored profile name.
+    if (selection === 'custom') {
+      const name = String(stored()?.name || '').toLowerCase();
+      const legacyPreset = name.includes('nord') ? 'nord' : name.includes('solarized') ? 'solarized' : null;
+      if (legacyPreset && apply(createPreset(legacyPreset))) { return; }
+    }
     clear();
     root.setAttribute('data-bs-theme', ['light', 'night'].includes(selection) ? selection : systemTheme());
   }
-  window.qbTheme = { key, roleMap, apply, clear, stored, hasStored: () => Boolean(stored()), applyStored: () => apply(stored()), systemTheme, applySelection };
+  window.qbTheme = { key, roleMap, presets, createPreset, apply, clear, stored, hasStored: () => Boolean(stored()), applyStored: () => apply(stored()), systemTheme, applySelection };
   applySelection();
   const systemPreference = window.matchMedia?.('(prefers-color-scheme: dark)');
   systemPreference?.addEventListener?.('change', () => {

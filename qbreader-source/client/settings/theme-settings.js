@@ -5,19 +5,10 @@ const nameInput = document.getElementById('theme-name');
 const roleFields = document.getElementById('theme-role-fields');
 const message = document.getElementById('theme-message');
 const labels = { background: 'Page background', panel: 'Panels and navigation', selection: 'Selected background', border: 'Borders', muted: 'Muted text', text: 'Main text', strong: 'Headings', danger: 'Incorrect and danger', warning: 'Warning', highlight: 'Highlights', success: 'Correct and success', info: 'Information', accent: 'Buttons and links', purple: 'Link hover', brown: 'Extra accent' };
-const presets = {
-  nord: { name: 'Nord', palette: ['2e3440', '3b4252', '434c5e', '4c566a', 'd8dee9', 'e5e9f0', 'eceff4', 'ffffff', 'bf616a', 'd08770', 'ebcb8b', 'a3be8c', '88c0d0', '81a1c1', 'b48ead', '8fbcbb'] },
-  solarized: { name: 'Solarized Light', palette: ['fdf6e3', 'eee8d5', 'e8e0cc', '93a1a1', '657b83', '586e75', '073642', '002b36', 'dc322f', 'cb4b16', 'b58900', '859900', '2aa198', '268bd2', '6c71c4', 'd33682'] }
-};
 let preview = null;
 let applied = false;
 const savedSelection = () => localStorage.getItem('color-theme') || 'auto';
 const normalizedKey = index => `base${index.toString(16).toUpperCase().padStart(2, '0')}`;
-
-function preset (id) {
-  const selected = presets[id];
-  return { version: 1, name: selected.name, palette: Object.fromEntries(selected.palette.map((color, index) => [normalizedKey(index), `#${color}`])), roles: {} };
-}
 
 function parseProfile (raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) { throw new Error('This file does not contain a theme.'); }
@@ -64,7 +55,7 @@ function showEditor () {
 
 function selectTheme (value) {
   message.textContent = '';
-  if (presets[value]) { preview = preset(value); }
+  if (manager.presets[value]) { preview = manager.createPreset(value); }
   else if (value === 'custom') {
     preview = manager.stored();
     if (!preview) { message.textContent = 'Import a Base16 palette or choose a built-in palette first.'; }
@@ -75,7 +66,7 @@ function selectTheme (value) {
   }
 }
 
-choice.value = ['auto', 'light', 'night', 'custom'].includes(savedSelection()) ? savedSelection() : 'auto';
+choice.value = ['auto', 'light', 'night', 'custom', ...Object.keys(manager.presets)].includes(savedSelection()) ? savedSelection() : 'auto';
 if (choice.value === 'custom' && manager.stored()) { preview = manager.stored(); showEditor(); }
 choice.addEventListener('change', () => selectTheme(choice.value));
 nameInput.addEventListener('input', () => { if (preview) { preview.name = nameInput.value; } });
@@ -99,8 +90,9 @@ document.getElementById('theme-apply').addEventListener('click', () => {
   if (preview) {
     preview.name = nameInput.value.trim() || 'Custom theme';
     localStorage.setItem(manager.key, JSON.stringify(preview));
-    localStorage.setItem('color-theme', 'custom');
-    choice.value = 'custom';
+    const selection = manager.presets[choice.value] ? choice.value : 'custom';
+    localStorage.setItem('color-theme', selection);
+    choice.value = selection;
     manager.apply(preview);
   } else {
     localStorage.setItem('color-theme', choice.value);
